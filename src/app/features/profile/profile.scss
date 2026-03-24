@@ -1,0 +1,320 @@
+// ─── Tokens ───────────────────────────────────────────────────────
+$color-white: #ffffff;
+$color-border: #e5e7eb;
+$color-bg: #f3f4f6;
+$color-accent: #2563eb;
+$color-accent-bg: #eff6ff;
+$color-text: #111827;
+$color-text-muted: #6b7280;
+$color-error: #ef4444;
+$color-shadow: rgba(0, 0, 0, 0.06);
+
+// ─── Page ─────────────────────────────────────────────────────────
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+// ─── Page Header ──────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid $color-border;
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: $color-text;
+    margin: 0;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: $color-text-muted;
+    margin: 4px 0 0 0;
+  }
+}
+
+// ─── Two Column Layout ────────────────────────────────────────────
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.col-left,
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────
+.card {
+  background: $color-white;
+  border-radius: 12px;
+  border: 1px solid $color-border;
+  box-shadow: 0 1px 4px $color-shadow;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $color-border;
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: $color-text;
+  }
+}
+
+.card-body {
+  padding: 20px;
+
+  &.no-pad {
+    padding: 0;
+  }
+}
+
+.card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid $color-border;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// ─── Profile Avatar ───────────────────────────────────────────────
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid $color-border;
+
+  .avatar-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $color-accent, #6366f1);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .avatar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .avatar-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: $color-text;
+    }
+  }
+}
+
+// ─── Form ─────────────────────────────────────────────────────────
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: $color-text;
+
+  .required {
+    color: $color-error;
+    margin-left: 2px;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  font-size: 14px;
+  color: $color-text;
+  background: $color-white;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms ease;
+
+  &::placeholder {
+    color: $color-text-muted;
+  }
+
+  &:focus {
+    border-color: $color-accent;
+  }
+}
+
+.form-error {
+  font-size: 12px;
+  color: $color-error;
+}
+
+// ─── Buttons ──────────────────────────────────────────────────────
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $color-accent;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+// ─── Role badges ──────────────────────────────────────────────────
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.badge-system-admin {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.badge-admin {
+    background: $color-accent-bg;
+    color: $color-accent;
+  }
+
+  &.badge-user {
+    background: #f0fdf4;
+    color: #166534;
+  }
+}
+
+// ─── App Rows ─────────────────────────────────────────────────────
+.app-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid $color-border;
+  transition: background 150ms ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  .app-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: $color-accent-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      color: $color-accent;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .app-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .app-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: $color-text;
+    }
+
+    .app-desc {
+      font-size: 12px;
+      color: $color-text-muted;
+    }
+  }
+}
+
+.empty-apps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: $color-text-muted;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+// ─── States ───────────────────────────────────────────────────────
+.state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px;
+  color: $color-text-muted;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

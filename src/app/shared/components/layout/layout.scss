@@ -1,0 +1,213 @@
+// ─── Tokens ───────────────────────────────────────────────────────
+$sidebar-width: 260px;
+$color-white: #ffffff;
+$color-border: #e5e7eb;
+$color-bg: #f3f4f6;
+$color-accent: #2563eb;
+$color-accent-bg: #eff6ff;
+$color-text: #111827;
+$color-text-muted: #6b7280;
+$color-hover: #f9fafb;
+$color-avatar-bg: #2563eb;
+$color-switch-btn: #f3f4f6;
+
+// ─── Shell ────────────────────────────────────────────────────────
+.shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+// ─── Sidebar ──────────────────────────────────────────────────────
+.sidebar {
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  height: 100vh;
+  background: $color-white;
+  border-right: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+// Branding
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    background: $color-accent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      color: #fff;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: $color-text;
+    letter-spacing: -0.01em;
+  }
+}
+
+// Nav
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: $color-text-muted;
+  transition: background 150ms ease, color 150ms ease;
+
+  &:hover {
+    background: $color-hover;
+    color: $color-text;
+  }
+
+  &.active {
+    background: $color-accent-bg;
+    color: $color-accent;
+
+    .nav-icon {
+      color: $color-accent;
+    }
+  }
+
+  .nav-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// ─── Sidebar Bottom ───────────────────────────────────────────────
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: $color-avatar-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      color: #fff;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: $color-text;
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: $color-text-muted;
+    }
+  }
+}
+
+.switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: $color-switch-btn;
+  color: $color-text-muted;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: #fee2e2;
+    color: #ef4444;
+
+    mat-icon {
+      color: #ef4444;
+    }
+  }
+}
+
+// ─── Main Content ─────────────────────────────────────────────────
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  background: $color-white;
+  padding: 24px;
+  box-sizing: border-box;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+}

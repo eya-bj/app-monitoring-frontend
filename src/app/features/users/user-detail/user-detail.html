@@ -1,0 +1,196 @@
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-link" (click)="goBack()">Users</span>
+    <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+    <span class="breadcrumb-current">{{ user()?.name || 'User Detail' }}</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <div class="header-info">
+        <h1 class="page-title">{{ user()?.name }}</h1>
+        <p class="page-subtitle">{{ user()?.email }}</p>
+      </div>
+    </div>
+    @if (canDelete()) {
+      <button class="btn-danger" (click)="deleteUser()">
+        <mat-icon>delete</mat-icon>
+        Delete User
+      </button>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading...</span>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="state-container error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (!isLoading() && user()) {
+    <div class="two-col" [class.single-col]="user()!.role !== 'USER'">
+
+      <!-- LEFT COLUMN -->
+      <div class="col-left">
+
+        <!-- User Info Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">User Information</span>
+          </div>
+          <div class="card-body">
+            <div class="info-rows">
+              <div class="info-row">
+                <span class="info-label">Full Name</span>
+                <span class="info-value">{{ user()!.name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ user()!.email }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Role</span>
+                <span [class]="getRoleBadgeClass(user()!.role)">
+                  {{ getRoleLabel(user()!.role) }}
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Login</span>
+                <span class="info-value">
+                  {{ user()!.lastLogin ? (user()!.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never' }}
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Created At</span>
+                <span class="info-value">
+                  {{ user()!.createdAt | date: 'M/d/yyyy' }}
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Updated At</span>
+                <span class="info-value">
+                  {{ user()!.updatedAt | date: 'M/d/yyyy' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Role Card -->
+        @if (user()!.role !== 'SYSTEM_ADMIN') {
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Change Role</span>
+            </div>
+            <div class="card-body">
+              <select class="role-select" [(ngModel)]="selectedRole">
+                @for (option of roleOptions; track option.value) {
+                  @if (isSystemAdmin() || option.value !== 'ADMIN') {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                }
+              </select>
+              <button class="btn-primary" (click)="updateRole()">
+                Update Role
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- RIGHT COLUMN — only for normal users -->
+      @if (user()!.role === 'USER') {
+        <div class="col-right">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Assigned Applications</span>
+              @if (isSystemAdmin()) {
+                <button class="btn-primary small" (click)="openAssignModal()">
+                  <mat-icon>add</mat-icon>
+                  Assign App
+                </button>
+              }
+            </div>
+            <div class="card-body no-pad">
+
+              @if (userApps().length === 0) {
+                <div class="empty-apps">
+                  <mat-icon>apps</mat-icon>
+                  <span>No applications assigned yet.</span>
+                </div>
+              }
+
+              @for (app of userApps(); track app.id) {
+                <div class="app-row">
+                  <div class="app-icon">
+                    <mat-icon>desktop_windows</mat-icon>
+                  </div>
+                  <div class="app-info">
+                    <span class="app-name">{{ app.appName }}</span>
+                    <span class="app-date">{{ app.appDescription }}</span>
+                  </div>
+                  @if (isSystemAdmin()) {
+                    <button class="icon-btn danger" matTooltip="Revoke" (click)="revokeApp(app.id)">
+                      <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
+
+<!-- Assign App Modal — SYSTEM_ADMIN only -->
+@if (showAssignModal() && isSystemAdmin()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Assign Application</span>
+        <button class="icon-btn" (click)="closeAssignModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        @if (availableApps().length === 0) {
+          <p class="text-muted">All applications are already assigned.</p>
+        } @else {
+          <label class="form-label">Select Application</label>
+          <select class="role-select" [(ngModel)]="selectedAppId">
+            <option [value]="null">-- Select an app --</option>
+            @for (app of availableApps(); track app.id) {
+              <option [value]="app.id">{{ app.appName }}</option>
+            }
+          </select>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAssignModal()">Cancel</button>
+        @if (availableApps().length > 0) {
+          <button class="btn-primary" (click)="assignApp()">Assign</button>
+        }
+      </div>
+    </div>
+  </div>
+}

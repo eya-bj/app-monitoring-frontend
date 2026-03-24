@@ -1,0 +1,135 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Users</h1>
+      <p class="page-subtitle">Manage platform users and permissions</p>
+    </div>
+    <button class="btn-primary" (click)="openAddUserDialog()">
+      <mat-icon>add</mat-icon>
+      Add User
+    </button>
+  </div>
+
+  <!-- Search + Filter Toolbar -->
+  <div class="toolbar">
+    <div class="search-input-wrapper">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Search users..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch()" />
+    </div>
+    <select class="role-filter" [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()">
+      @for (option of roleOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="state-container">
+        <mat-icon class="spin">refresh</mat-icon>
+        <span>Loading users...</span>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (!isLoading() && errorMessage()) {
+      <div class="state-container error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Table -->
+    @if (!isLoading() && !errorMessage()) {
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Last Login</th>
+            <th>App Access</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (users().length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No users found.</td>
+            </tr>
+          }
+          @for (user of users(); track user.id) {
+            <tr class="table-row">
+              <!-- Username -->
+              <td>
+                <div class="user-cell">
+                  <div class="avatar">{{ getInitials(user.name) }}</div>
+                  <span class="user-name">{{ user.name }}</span>
+                </div>
+              </td>
+              <!-- Email -->
+              <td class="text-muted">{{ user.email }}</td>
+              <!-- Role -->
+              <td>
+                <span [class]="getRoleBadgeClass(user.role)">
+                  {{ getRoleLabel(user.role) }}
+                </span>
+              </td>
+              <!-- Last Login -->
+              <td class="text-muted">
+                  {{ user.lastLogin ? (user.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never' }}
+              </td>
+              <!-- App Access -->
+              <td class="text-muted">{{ getAppCount(user.id) }}</td>
+              <!-- Actions -->
+              <td>
+                <div class="actions">
+                  @if (user.id !== currentUser()?.id) {
+                    <button class="icon-btn" matTooltip="View" (click)="viewUser(user.id)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    @if (canDelete(user)) {
+                      <button class="icon-btn danger" matTooltip="Delete" (click)="deleteUser(user.id)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  } @else {
+                    <span class="text-muted" style="font-size: 13px;">—</span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span class="pagination-info">
+            Page {{ currentPage() + 1 }} of {{ totalPages() }}
+          </span>
+          <div class="pagination-controls">
+            <button class="page-btn" [disabled]="currentPage() === 0" (click)="prevPage()">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button class="page-btn" [disabled]="currentPage() === totalPages() - 1" (click)="nextPage()">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    }
+
+  </div>
+</div>

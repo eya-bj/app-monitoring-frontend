@@ -1,0 +1,53 @@
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Top: Branding -->
+    <div class="sidebar-top">
+      <div class="brand">
+        <div class="brand-icon">
+          <mat-icon>grid_view</mat-icon>
+        </div>
+        <span class="brand-name">App Monitoring</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav-menu">
+        @for (item of visibleNavItems(); track item.route) {
+          <div
+            class="nav-item"
+            [class.active]="isActive(item.route)"
+            [routerLink]="item.route">
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+          </div>
+        }
+      </nav>
+    </div>
+
+    <!-- Bottom: User Profile -->
+    <div class="sidebar-bottom">
+      <div class="user-profile">
+        <div class="user-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ currentUser()?.name }}</span>
+          <span class="user-role">{{ currentUser()?.role }}</span>
+        </div>
+      </div>
+      <button class="switch-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <router-outlet />
+  </main>
+
+</div>

@@ -1,0 +1,19 @@
+<div class="dialog">
+  <div class="dialog-header">
+    <span class="dialog-title">{{ data.title }}</span>
+    <button class="icon-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="dialog-body">
+    <div class="success-icon">
+      <mat-icon>check_circle</mat-icon>
+    </div>
+    <p class="dialog-message">{{ data.message }}</p>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn-success" (click)="close()">
+      {{ data.closeLabel || 'OK' }}
+    </button>
+  </div>
+</div>

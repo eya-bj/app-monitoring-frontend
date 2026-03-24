@@ -1,0 +1,162 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Profile</h1>
+      <p class="page-subtitle">Manage your personal information and security settings</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading...</span>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <div class="two-col">
+
+      <!-- LEFT — Profile Info -->
+      <div class="col-left">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Personal Information</span>
+          </div>
+          <div class="card-body">
+
+            <!-- Avatar -->
+            <div class="profile-avatar">
+              <div class="avatar-circle">{{ getInitials() }}</div>
+              <div class="avatar-info">
+                <span class="avatar-name">{{ currentUser()?.name }}</span>
+                <span [class]="getRoleBadgeClass()">{{ getRoleLabel() }}</span>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <div class="form-group" [formGroup]="profileForm">
+              <div class="field">
+                <label class="form-label">Full Name <span class="required">*</span></label>
+                <input
+                  class="form-input"
+                  type="text"
+                  placeholder="Enter full name"
+                  formControlName="name" />
+                @if (nameError) {
+                  <span class="form-error">{{ nameError }}</span>
+                }
+              </div>
+
+              <div class="field">
+                <label class="form-label">Email <span class="required">*</span></label>
+                <input
+                  class="form-input"
+                  type="email"
+                  placeholder="Enter email"
+                  formControlName="email" />
+                @if (emailError) {
+                  <span class="form-error">{{ emailError }}</span>
+                }
+              </div>
+            </div>
+
+          </div>
+          <div class="card-footer">
+            <button class="btn-primary" (click)="saveProfile()">
+              <mat-icon>save</mat-icon>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — Change Password -->
+      <div class="col-right">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Change Password</span>
+          </div>
+          <div class="card-body">
+            <div class="form-group" [formGroup]="passwordForm">
+
+              <div class="field">
+                <label class="form-label">Current Password <span class="required">*</span></label>
+                <input
+                  class="form-input"
+                  type="password"
+                  placeholder="Enter current password"
+                  formControlName="currentPassword" />
+              </div>
+
+              <div class="field">
+                <label class="form-label">New Password <span class="required">*</span></label>
+                <input
+                  class="form-input"
+                  type="password"
+                  placeholder="Enter new password"
+                  formControlName="newPassword" />
+                @if (newPasswordError) {
+                  <span class="form-error">{{ newPasswordError }}</span>
+                }
+              </div>
+
+              <div class="field">
+                <label class="form-label">Confirm Password <span class="required">*</span></label>
+                <input
+                  class="form-input"
+                  type="password"
+                  placeholder="Confirm new password"
+                  formControlName="confirmPassword" />
+                @if (confirmPasswordError) {
+                  <span class="form-error">{{ confirmPasswordError }}</span>
+                }
+              </div>
+
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-primary" (click)="savePassword()">
+              <mat-icon>lock</mat-icon>
+              Change Password
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Assigned Apps — USER role only -->
+        @if (isUser()) {
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Assigned Applications</span>
+            </div>
+            <div class="card-body no-pad">
+
+              @if (assignedApps().length === 0) {
+                <div class="empty-apps">
+                  <mat-icon>apps</mat-icon>
+                  <span>No applications assigned yet.</span>
+                </div>
+              }
+
+              @for (app of assignedApps(); track app.id) {
+                <div class="app-row">
+                  <div class="app-icon">
+                    <mat-icon>desktop_windows</mat-icon>
+                  </div>
+                  <div class="app-info">
+                    <span class="app-name">{{ app.appName }}</span>
+                    <span class="app-desc">{{ app.appDescription }}</span>
+                  </div>
+                </div>
+              }
+
+            </div>
+          </div>
+        }
+  }
+
+
+</div>

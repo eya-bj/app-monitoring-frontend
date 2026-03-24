@@ -1,0 +1,132 @@
+$color-white: #ffffff;
+$color-border: #e5e7eb;
+$color-text: #111827;
+$color-text-muted: #6b7280;
+$color-accent: #2563eb;
+$color-danger: #ef4444;
+$color-danger-bg: #fee2e2;
+$color-bg: #f3f4f6;
+
+.dialog {
+  background: $color-white;
+  border-radius: 12px;
+  min-width: 380px;
+  max-width: 90vw;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $color-border;
+
+  .dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $color-text;
+  }
+}
+
+.dialog-body {
+  padding: 20px;
+
+  .dialog-message {
+    font-size: 14px;
+    color: $color-text-muted;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid $color-border;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $color-accent;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $color-white;
+  color: $color-text-muted;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: $color-bg;
+  }
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $color-danger-bg;
+  color: $color-danger;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: #fecaca;
+  }
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-muted;
+  transition: background 150ms ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: $color-bg;
+    color: $color-text;
+  }
+}

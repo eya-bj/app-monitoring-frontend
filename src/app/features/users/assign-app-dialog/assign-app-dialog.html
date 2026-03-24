@@ -1,0 +1,48 @@
+<div class="dialog">
+  <div class="dialog-header">
+    <span class="dialog-title">Assign Application</span>
+    <button class="icon-btn" (click)="cancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <p class="dialog-message">
+      Select an application to assign to <strong>{{ data.userName }}</strong>.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">Application</label>
+      <select class="form-select" [(ngModel)]="selectedAppId">
+        <option [value]="null">-- Select an app --</option>
+        @for (app of data.availableApps; track app.id) {
+          <option [value]="app.id">{{ app.appName }}</option>
+        }
+      </select>
+    </div>
+
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-secondary" (click)="cancel()">Skip</button>
+    <button
+      class="btn-primary"
+      (click)="assign()"
+      [disabled]="!selectedAppId() || isLoading()">
+      @if (isLoading()) {
+        <mat-icon class="spin">refresh</mat-icon>
+      } @else {
+        <mat-icon>apps</mat-icon>
+      }
+      {{ isLoading() ? 'Assigning...' : 'Assign' }}
+    </button>
+  </div>
+</div>
