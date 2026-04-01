@@ -44,6 +44,7 @@ export class LayoutComponent implements OnInit {
 
   readonly navItems: NavItem[] = [
   { label: 'Global Dashboard', icon: 'dashboard', route: '/dashboard' },
+  { label: 'Applications', icon: 'monitor_heart', route: '/apps' },
   { label: 'Users', icon: 'group', route: '/users', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
   { label: 'App Access', icon: 'apps', route: '/app-access', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
   { label: 'Profile', icon: 'person', route: '/profile' },

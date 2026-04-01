@@ -1,0 +1,339 @@
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-link" (click)="goBack()">Applications</span>
+    <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+    <span class="breadcrumb-current">{{ app()?.name || 'App Detail' }}</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <div class="header-info">
+        <h1 class="page-title">{{ app()?.name }}</h1>
+        <p class="page-subtitle">{{ app()?.url }}</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <div class="header-actions">
+        <button class="btn-secondary" (click)="openEditDialog()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button class="btn-danger" (click)="deleteApp()">
+          <mat-icon>delete</mat-icon>
+          Delete App
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading...</span>
+    </div>
+  }
+
+  @if (!isLoading() && errorMessage()) {
+    <div class="state-container error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (!isLoading() && app()) {
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'info'"
+        (click)="setTab('info')">
+        <mat-icon>info</mat-icon>
+        Info
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'checks'"
+        (click)="setTab('checks')">
+        <mat-icon>monitor_heart</mat-icon>
+        Checks
+        @if (app()!.totalChecks > 0) {
+          <span class="tab-badge">{{ app()!.totalChecks }}</span>
+        }
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'users'"
+        (click)="setTab('users')">
+        <mat-icon>group</mat-icon>
+        Users
+        @if (appUsers().length > 0) {
+          <span class="tab-badge">{{ appUsers().length }}</span>
+        }
+      </button>
+    </div>
+
+    <!-- Tab: Info -->
+    @if (activeTab() === 'info') {
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Application Information</span>
+        </div>
+        <div class="card-body">
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="info-label">Name</span>
+              <span class="info-value">{{ app()!.name }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Description</span>
+              <span class="info-value">{{ app()!.description || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">URL</span>
+              <span class="info-value url-value">{{ app()!.url }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Environment</span>
+              <span [class]="getEnvironmentBadgeClass(app()!.environment)">
+                {{ getEnvironmentLabel(app()!.environment) }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Total Checks</span>
+              <span class="info-value">{{ app()!.totalChecks }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Active Checks</span>
+              <span class="info-value">{{ app()!.activeChecks }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Created At</span>
+              <span class="info-value">
+                {{ app()!.createdAt | date: 'M/d/yyyy' }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Updated At</span>
+              <span class="info-value">
+                {{ app()!.updatedAt | date: 'M/d/yyyy' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Tab: Checks -->
+@if (activeTab() === 'checks') {
+  <div class="tab-content-header">
+    <div class="checks-filters">
+      <select
+        class="filter-select"
+        [(ngModel)]="selectedCheckType"
+        (ngModelChange)="loadChecks()">
+        <option value="">All Types</option>
+        <option value="CLUSTER">Cluster</option>
+        <option value="DATA">Data</option>
+        <option value="FILE">File</option>
+      </select>
+      <select
+        class="filter-select"
+        [(ngModel)]="selectedCheckStatus"
+        (ngModelChange)="loadChecks()">
+        <option value="">All Statuses</option>
+        <option value="ENABLED">Enabled</option>
+        <option value="DISABLED">Disabled</option>
+      </select>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openAddCheckDialog()">
+        <mat-icon>add</mat-icon>
+        Add Check
+      </button>
+    }
+  </div>
+
+  <div class="table-card">
+
+    @if (checksLoading()) {
+      <div class="state-container">
+        <mat-icon class="spin">refresh</mat-icon>
+        <span>Loading checks...</span>
+      </div>
+    }
+
+    @if (!checksLoading() && checks().length === 0) {
+      <div class="state-container">
+        <mat-icon>monitor_heart</mat-icon>
+        <span>No checks yet. Click "Add Check" to get started.</span>
+      </div>
+    }
+
+    @if (!checksLoading() && checks().length > 0) {
+      <table class="checks-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Schedule</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (check of checks(); track check.id) {
+            <tr class="table-row">
+              <!-- Name -->
+              <td>
+                <div class="check-cell">
+                  <span class="check-name">{{ check.name }}</span>
+                  @if (check.description) {
+                    <span class="check-desc">{{ check.description }}</span>
+                  }
+                </div>
+              </td>
+              <!-- Type -->
+              <td>
+                <span [class]="getCheckTypeBadgeClass(check.checkType)">
+                  {{ getCheckTypeLabel(check.checkType) }}
+                </span>
+              </td>
+              <!-- Severity -->
+              <td>
+                <span [class]="getSeverityBadgeClass(check.severity)">
+                  {{ check.severity }}
+                </span>
+              </td>
+              <!-- Schedule -->
+              <td class="text-muted">{{ check.cronExpression | cronHuman }}</td>
+              <!-- Status -->
+              <td>
+                <span class="status-badge"
+                  [class.status-enabled]="check.status === 'ENABLED'"
+                  [class.status-disabled]="check.status === 'DISABLED'">
+                  {{ check.status }}
+                </span>
+              </td>
+              <!-- Actions -->
+                <td>
+                  <div class="actions">
+                    <button class="icon-btn" matTooltip="View Details"
+                      (click)="viewCheck(check.id)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button
+                      class="icon-btn"
+                      [matTooltip]="check.status === 'ENABLED' ? 'Disable' : 'Enable'"
+                      (click)="toggleCheck(check)">
+                      <mat-icon>
+                        {{ check.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}
+                      </mat-icon>
+                    </button>
+                    @if (isAdmin()) {
+                      <button class="icon-btn danger" matTooltip="Delete"
+                        (click)="deleteCheck(check)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+  </div>
+}
+
+    <!-- Tab: Users -->
+    @if (activeTab() === 'users') {
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Users with Access</span>
+          @if (isAdmin()) {
+            <button class="btn-primary small" (click)="openAssignModal()">
+              <mat-icon>add</mat-icon>
+              Assign User
+            </button>
+          }
+        </div>
+        <div class="card-body no-pad">
+
+          @if (appUsers().length === 0) {
+            <div class="empty-apps">
+              <mat-icon>person_off</mat-icon>
+              <span>No users assigned yet.</span>
+            </div>
+          }
+
+          @for (user of appUsers(); track user.id) {
+            <div class="app-row">
+              <div class="app-icon">
+                <span class="avatar">{{ getInitials(user.name) }}</span>
+              </div>
+              <div class="app-info">
+                <span class="app-name">{{ user.name }}</span>
+                <span class="app-date">{{ user.email }}</span>
+              </div>
+              <span [class]="getRoleBadgeClass(user.role)">
+                {{ getRoleLabel(user.role) }}
+              </span>
+              @if (isAdmin()) {
+                <button class="icon-btn danger" matTooltip="Revoke"
+                  (click)="revokeUser(user.id)">
+                  <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+              }
+            </div>
+          }
+
+        </div>
+      </div>
+    }
+
+  }
+
+</div>
+
+<!-- Assign User Modal -->
+@if (showAssignModal() && isAdmin()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Assign User</span>
+        <button class="icon-btn" (click)="closeAssignModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        @if (availableUsers().length === 0) {
+          <p class="text-muted">All users already have access.</p>
+        } @else {
+          <label class="form-label">Select User</label>
+          <select class="role-select" [(ngModel)]="selectedUserId">
+            <option [value]="null">-- Select a user --</option>
+            @for (user of availableUsers(); track user.id) {
+              <option [value]="user.id">{{ user.name }}</option>
+            }
+          </select>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAssignModal()">Cancel</button>
+        @if (availableUsers().length > 0) {
+          <button class="btn-primary" (click)="assignUser()">Assign</button>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,78 @@
+<div class="dialog">
+
+  <div class="dialog-header">
+    <h2 class="dialog-title">Edit Application</h2>
+    <button class="close-btn" (click)="cancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="form-field">
+      <label class="form-label">Name <span class="required">*</span></label>
+      <input
+        class="form-input"
+        [class.input-error]="name && getNameError()"
+        type="text"
+        placeholder="e.g. PaymentService"
+        [(ngModel)]="name" />
+      @if (name && getNameError()) {
+        <span class="field-error">{{ getNameError() }}</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Description</label>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="Optional description"
+        [(ngModel)]="description" />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">URL <span class="required">*</span></label>
+      <input
+        class="form-input"
+        [class.input-error]="url && getUrlError()"
+        type="text"
+        placeholder="e.g. http://payment.internal"
+        [(ngModel)]="url" />
+      @if (url && getUrlError()) {
+        <span class="field-error">{{ getUrlError() }}</span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Environment <span class="required">*</span></label>
+      <select class="form-select" [(ngModel)]="environment">
+        @for (option of environmentOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-cancel" (click)="cancel()">Cancel</button>
+    <button
+      class="btn-submit"
+      [disabled]="!isFormValid() || isLoading()"
+      (click)="submit()">
+      @if (isLoading()) {
+        <mat-icon class="spin">refresh</mat-icon>
+      }
+      Save Changes
+    </button>
+  </div>
+
+</div>

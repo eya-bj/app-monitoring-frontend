@@ -1,0 +1,89 @@
+$color-white: #ffffff;
+$color-bg: #f3f4f6;
+$color-border: #e5e7eb;
+$color-accent: #2563eb;
+$color-accent-bg: #eff6ff;
+$color-text: #111827;
+$color-text-muted: #6b7280;
+
+.cron-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  .form-field { flex: 1; min-width: 120px; }
+  .flex-2 { flex: 2; }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text;
+}
+
+.form-input,
+.form-select {
+  padding: 9px 12px;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: $color-text;
+  background: $color-white;
+  outline: none;
+  transition: border-color 150ms ease;
+
+  &::placeholder { color: $color-text-muted; }
+  &:focus { border-color: $color-accent; }
+}
+
+.form-select { cursor: pointer; }
+
+// ─── Preview ──────────────────────────────────────────
+.cron-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: $color-accent-bg;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+
+  mat-icon {
+    color: $color-accent;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .preview-human {
+    font-size: 13px;
+    font-weight: 600;
+    color: $color-accent;
+  }
+
+  .preview-cron {
+    font-size: 11px;
+    color: $color-text-muted;
+    font-family: monospace;
+  }
+}

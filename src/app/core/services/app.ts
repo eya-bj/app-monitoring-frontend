@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppResponse } from '../models/app';
+import {
+  AppResponse,
+  CreateAppRequest,
+  UpdateAppRequest,
+} from '../models/app';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +15,29 @@ export class AppService {
 
   constructor(private http: HttpClient) {}
 
-  getAllApps(): Observable<AppResponse[]> {
-    return this.http.get<AppResponse[]>(this.baseUrl);
+  getAllApps(
+    name?: string,
+    environment?: string
+  ): Observable<AppResponse[]> {
+    let params = new HttpParams();
+    if (name) params = params.set('name', name);
+    if (environment) params = params.set('environment', environment);
+    return this.http.get<AppResponse[]>(this.baseUrl, { params });
+  }
+
+  getAppById(id: number): Observable<AppResponse> {
+    return this.http.get<AppResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  createApp(request: CreateAppRequest): Observable<AppResponse> {
+    return this.http.post<AppResponse>(this.baseUrl, request);
+  }
+
+  updateApp(id: number, request: UpdateAppRequest): Observable<AppResponse> {
+    return this.http.put<AppResponse>(`${this.baseUrl}/${id}`, request);
+  }
+
+  deleteApp(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

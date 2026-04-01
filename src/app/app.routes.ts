@@ -52,11 +52,41 @@ export const routes: Routes = [
           m => m.ProfileComponent
         ),
       },
+      // ─── Apps ──────────────────────────────────────────
+      {
+        path: 'apps',
+        loadComponent: () =>
+          import('./features/apps/app-list/app-list').then(
+            m => m.AppListComponent
+          ),
+      },
+      {
+        path: 'apps/:id',
+        loadComponent: () =>
+          import('./features/apps/app-detail/app-detail').then(
+            m => m.AppDetailComponent
+          ),
+      },
+      {
+        path: 'apps/:appId/checks/add',
+        loadComponent: () =>
+          import('./features/apps/add-check/add-check').then(
+            m => m.AddCheckComponent
+          ),
+      },
+      {
+        path: 'apps/:appId/checks/:checkId',
+        loadComponent: () =>
+          import('./features/apps/check-detail/check-detail').then(
+            m => m.CheckDetailComponent
+          ),
+      },
       {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
       },
+
     ],
   },
   {

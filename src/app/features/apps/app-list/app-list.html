@@ -1,0 +1,129 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Applications</h1>
+      <p class="page-subtitle">Manage and monitor your applications</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Add App
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-input-wrapper">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Search applications..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch()" />
+    </div>
+    <select
+      class="role-filter"
+      [(ngModel)]="selectedEnvironment"
+      (ngModelChange)="onEnvironmentChange()">
+      @for (option of environmentOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    @if (isLoading()) {
+      <div class="state-container">
+        <mat-icon class="spin">refresh</mat-icon>
+        <span>Loading applications...</span>
+      </div>
+    }
+
+    @if (!isLoading() && errorMessage()) {
+      <div class="state-container error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Application</th>
+            <th>URL</th>
+            <th>Environment</th>
+            <th>Checks</th>
+            <th>Active</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (apps().length === 0) {
+            <tr>
+              <td colspan="7" class="empty-row">No applications found.</td>
+            </tr>
+          }
+          @for (app of apps(); track app.id) {
+            <tr class="table-row">
+              <!-- Name -->
+              <td>
+                <div class="user-cell">
+                  <div class="app-icon">
+                    <mat-icon>monitor_heart</mat-icon>
+                  </div>
+                  <div class="app-info">
+                    <span class="user-name">{{ app.name }}</span>
+                    @if (app.description) {
+                      <span class="app-desc">{{ app.description }}</span>
+                    }
+                  </div>
+                </div>
+              </td>
+              <!-- URL -->
+              <td class="text-muted url-cell">{{ app.url }}</td>
+              <!-- Environment -->
+              <td>
+                <span [class]="getEnvironmentBadgeClass(app.environment)">
+                  {{ getEnvironmentLabel(app.environment) }}
+                </span>
+              </td>
+              <!-- Total Checks -->
+              <td class="text-muted">{{ app.totalChecks }}</td>
+              <!-- Active Checks -->
+              <td>
+                <span class="checks-count" [class.has-checks]="app.activeChecks > 0">
+                  {{ app.activeChecks }}
+                </span>
+              </td>
+              <!-- Created At -->
+              <td class="text-muted">
+                {{ app.createdAt | date: 'M/d/yyyy' }}
+              </td>
+              <!-- Actions -->
+              <td>
+                <div class="actions">
+                  <button class="icon-btn" matTooltip="View Checks" (click)="viewApp(app.id)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button class="icon-btn" matTooltip="Edit" (click)="openEditDialog(app)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button class="icon-btn danger" matTooltip="Delete" (click)="deleteApp(app)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+  </div>
+</div>

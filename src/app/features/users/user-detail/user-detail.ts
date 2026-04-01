@@ -194,7 +194,7 @@ export class UserDetailComponent implements OnInit {
       position: { top: '80px' },
       data: {
         title: 'Revoke Access',
-        message: `Are you sure you want to revoke access to ${app?.appName} for ${this.user()?.name}?`,
+        message: `Are you sure you want to revoke access to ${app?.name} for ${this.user()?.name}?`,
         confirmLabel: 'Revoke',
         cancelLabel: 'Cancel',
         isDanger: true,
@@ -204,7 +204,7 @@ export class UserDetailComponent implements OnInit {
       if (!confirmed) return;
       this.appAccessService.revokeUserFromApp(this.userId, appId).subscribe({
         next: () => {
-          this.showSuccess('Access Revoked', `Access to ${app?.appName} has been revoked successfully.`);
+          this.showSuccess('Access Revoked', `Access to ${app?.name} has been revoked successfully.`);
           this.loadAll();
         },
         error: (err) => {

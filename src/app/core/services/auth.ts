@@ -40,6 +40,16 @@ export class AuthService {
     return !!this.getToken();
   }
 
+  private isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiryMs = payload.exp * 1000;
+    return Date.now() > expiryMs;
+  } catch {
+    return true;
+  }
+}
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

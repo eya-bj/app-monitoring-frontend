@@ -141,8 +141,8 @@
                     <mat-icon>desktop_windows</mat-icon>
                   </div>
                   <div class="app-info">
-                    <span class="app-name">{{ app.appName }}</span>
-                    <span class="app-date">{{ app.appDescription }}</span>
+                    <span class="app-name">{{ app.name }}</span>
+                    <span class="app-date">{{ app.description }}</span>
                   </div>
                   @if (isSystemAdmin()) {
                     <button class="icon-btn danger" matTooltip="Revoke" (click)="revokeApp(app.id)">
@@ -180,7 +180,7 @@
           <select class="role-select" [(ngModel)]="selectedAppId">
             <option [value]="null">-- Select an app --</option>
             @for (app of availableApps(); track app.id) {
-              <option [value]="app.id">{{ app.appName }}</option>
+              <option [value]="app.id">{{ app.name }}</option>
             }
           </select>
         }

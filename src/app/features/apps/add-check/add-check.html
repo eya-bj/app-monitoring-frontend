@@ -1,0 +1,555 @@
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-link" (click)="cancel()">Applications</span>
+    <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+    <span class="breadcrumb-link" (click)="cancel()">App Detail</span>
+    <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+    <span class="breadcrumb-current">Add Check</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <div class="header-info">
+        <h1 class="page-title">
+          {{ step() === 1 ? 'Add Check' : 'Configure ' + getTypeLabel(selectedType()!) }}
+        </h1>
+        <p class="page-subtitle">
+          {{ step() === 1 ? 'Choose the type of check to create' : 'Fill in the configuration details' }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="steps-bar">
+    <div class="step-item" [class.active]="step() >= 1" [class.done]="step() > 1">
+      <div class="step-circle">
+        @if (step() > 1) {
+          <mat-icon>check</mat-icon>
+        } @else {
+          <span>1</span>
+        }
+      </div>
+      <span class="step-label">Choose Type</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" [class.active]="step() >= 2">
+      <div class="step-circle">
+        <span>2</span>
+      </div>
+      <span class="step-label">Configure</span>
+    </div>
+  </div>
+
+  <!-- Error Banner -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- ── STEP 1: Choose Type ── -->
+  @if (step() === 1) {
+    <div class="type-cards">
+
+      <div class="type-card" (click)="selectType('CLUSTER')">
+        <div class="type-icon cluster">
+          <mat-icon>device_hub</mat-icon>
+        </div>
+        <div class="type-info">
+          <span class="type-name">Cluster Check</span>
+          <span class="type-desc">
+            Monitor node health via HTTP endpoints.
+            Supports ALL_UP and MAJORITY_UP strategies.
+          </span>
+        </div>
+        <mat-icon class="type-arrow">chevron_right</mat-icon>
+      </div>
+
+      <div class="type-card" (click)="selectType('DATA')">
+        <div class="type-icon data">
+          <mat-icon>storage</mat-icon>
+        </div>
+        <div class="type-info">
+          <span class="type-name">Data Check</span>
+          <span class="type-desc">
+            Validate data integrity across databases.
+            Supports single or dual DB comparison.
+          </span>
+        </div>
+        <mat-icon class="type-arrow">chevron_right</mat-icon>
+      </div>
+
+      <div class="type-card" (click)="selectType('FILE')">
+        <div class="type-icon file">
+          <mat-icon>folder</mat-icon>
+        </div>
+        <div class="type-info">
+          <span class="type-name">File Check</span>
+          <span class="type-desc">
+            Validate files on SFTP servers.
+            Supports structure and content validation.
+          </span>
+        </div>
+        <mat-icon class="type-arrow">chevron_right</mat-icon>
+      </div>
+
+    </div>
+  }
+
+  <!-- ── STEP 2: Configure ── -->
+  @if (step() === 2) {
+    <div class="form-page">
+
+      <!-- Common Fields -->
+      <div class="form-card">
+        <div class="card-title">General</div>
+        <div class="card-body">
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Name <span class="required">*</span></label>
+              <input class="form-input" type="text"
+                placeholder="e.g. Payment Cluster Check"
+                [(ngModel)]="name" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Severity <span class="required">*</span></label>
+              <select class="form-select" [(ngModel)]="severity">
+                @for (s of severityOptions; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field full-width">
+              <label class="form-label">
+                Schedule <span class="required">*</span>
+              </label>
+              <cron-builder [(ngModel)]="cronExpression"></cron-builder>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Consecutive Threshold <span class="required">*</span></label>
+              <input class="form-input" type="number"
+                min="1" [(ngModel)]="consecutiveThreshold" />
+              <span class="form-hint">
+                Number of consecutive failures before alert
+              </span>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Description</label>
+            <input class="form-input" type="text"
+              placeholder="Optional description"
+              [(ngModel)]="description" />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── CLUSTER FIELDS ── -->
+      @if (selectedType() === 'CLUSTER') {
+
+        <div class="form-card">
+          <div class="card-title">Connection Settings</div>
+          <div class="card-body">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Protocol <span class="required">*</span></label>
+                <select class="form-select" [(ngModel)]="protocol">
+                  <option value="http">http</option>
+                  <option value="https">https</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Health Path <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  placeholder="/actuator/health"
+                  [(ngModel)]="healthPath" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Expected Status Code</label>
+                <input class="form-input" type="number"
+                  [(ngModel)]="expectedStatusCode" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Timeout (seconds)</label>
+                <input class="form-input" type="number"
+                  [(ngModel)]="timeoutSeconds" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Health Strategy</label>
+                <select class="form-select" [(ngModel)]="healthStrategy">
+                  <option value="ALL_UP">All Up — all nodes must be up</option>
+                  <option value="MAJORITY_UP">Majority Up — more than half must be up</option>
+                </select>
+              </div>
+              <div class="form-field checkbox-field">
+                <label class="form-label">Authentication</label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="authRequired" />
+                  Require Basic Auth
+                </label>
+              </div>
+            </div>
+
+            @if (authRequired) {
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Username <span class="required">*</span></label>
+                  <input class="form-input" type="text"
+                    [(ngModel)]="authUsername" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Password <span class="required">*</span></label>
+                  <input class="form-input" type="password"
+                    [(ngModel)]="authPassword" />
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="card-title-row">
+            <span class="card-title">Cluster Nodes</span>
+            <button class="btn-add-inline" (click)="addNode()">
+              <mat-icon>add</mat-icon> Add Node
+            </button>
+          </div>
+          <div class="card-body">
+            @for (node of nodes; track $index) {
+              <div class="node-row">
+                <div class="form-field flex-2">
+                  <label class="form-label">IP Address <span class="required">*</span></label>
+                  <input class="form-input" type="text"
+                    placeholder="192.168.1.10"
+                    [(ngModel)]="node.ipAddress" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Port</label>
+                  <input class="form-input" type="number"
+                    [(ngModel)]="node.port" />
+                </div>
+                <div class="form-field flex-2">
+                  <label class="form-label">Label <span class="required">*</span></label>
+                  <input class="form-input" type="text"
+                    placeholder="Node 1"
+                    [(ngModel)]="node.label" />
+                </div>
+                <button class="icon-btn danger"
+                  [disabled]="nodes.length === 1"
+                  (click)="removeNode($index)">
+                  <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+      }
+
+      <!-- ── DATA FIELDS ── -->
+      @if (selectedType() === 'DATA') {
+
+        <div class="form-card">
+          <div class="card-title">Primary Database</div>
+          <div class="card-body">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">DB Type <span class="required">*</span></label>
+                <select class="form-select" [(ngModel)]="primaryDbType">
+                  @for (db of dbTypeOptions; track db) {
+                    <option [value]="db">{{ db }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Host <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  placeholder="localhost" [(ngModel)]="primaryDbHost" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Port</label>
+                <input class="form-input" type="number"
+                  [(ngModel)]="primaryDbPort" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Database Name <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  [(ngModel)]="primaryDbName" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Username <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  [(ngModel)]="primaryDbUsername" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Password <span class="required">*</span></label>
+                <input class="form-input" type="password"
+                  [(ngModel)]="primaryDbPassword" />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Query A <span class="required">*</span></label>
+              <textarea class="form-textarea" rows="3"
+                placeholder="SELECT COUNT(*) FROM transactions"
+                [(ngModel)]="queryA"></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="card-title">Comparison</div>
+          <div class="card-body">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Comparison Type <span class="required">*</span></label>
+                <select class="form-select" [(ngModel)]="comparisonType">
+                  @for (ct of comparisonTypeOptions; track ct) {
+                    <option [value]="ct">{{ ct }}</option>
+                  }
+                </select>
+              </div>
+              @if (comparisonType === 'EQUALS_EXPECTED') {
+                <div class="form-field">
+                  <label class="form-label">Expected Value <span class="required">*</span></label>
+                  <input class="form-input" type="number"
+                    [(ngModel)]="expectedValue" />
+                </div>
+              }
+              @if (comparisonType === 'EQUALS_WITH_TOLERANCE') {
+                <div class="form-field">
+                  <label class="form-label">Tolerance Value <span class="required">*</span></label>
+                  <input class="form-input" type="number"
+                    [(ngModel)]="toleranceValue" />
+                </div>
+              }
+            </div>
+
+            <div class="section-toggle">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="hasSecondaryDb" />
+                Add Secondary Database
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        @if (hasSecondaryDb) {
+          <div class="form-card">
+            <div class="card-title">Secondary Database</div>
+            <div class="card-body">
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">DB Type</label>
+                  <select class="form-select" [(ngModel)]="secondaryDbType">
+                    @for (db of dbTypeOptions; track db) {
+                      <option [value]="db">{{ db }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Host</label>
+                  <input class="form-input" type="text"
+                    [(ngModel)]="secondaryDbHost" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Port</label>
+                  <input class="form-input" type="number"
+                    [(ngModel)]="secondaryDbPort" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Database Name</label>
+                  <input class="form-input" type="text"
+                    [(ngModel)]="secondaryDbName" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Username</label>
+                  <input class="form-input" type="text"
+                    [(ngModel)]="secondaryDbUsername" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Password</label>
+                  <input class="form-input" type="password"
+                    [(ngModel)]="secondaryDbPassword" />
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label">Query B</label>
+                <textarea class="form-textarea" rows="3"
+                  placeholder="SELECT COUNT(*) FROM transactions"
+                  [(ngModel)]="queryB"></textarea>
+              </div>
+
+            </div>
+          </div>
+        }
+
+      }
+
+      <!-- ── FILE FIELDS ── -->
+      @if (selectedType() === 'FILE') {
+
+        <div class="form-card">
+          <div class="card-title">SFTP Connection</div>
+          <div class="card-body">
+
+            <div class="form-row">
+              <div class="form-field flex-2">
+                <label class="form-label">SFTP Host <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  placeholder="sftp.internal" [(ngModel)]="sftpHost" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Port</label>
+                <input class="form-input" type="number"
+                  [(ngModel)]="sftpPort" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Username <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  [(ngModel)]="sftpUsername" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Password <span class="required">*</span></label>
+                <input class="form-input" type="password"
+                  [(ngModel)]="sftpPassword" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="card-title">File Settings</div>
+          <div class="card-body">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Folder Path <span class="required">*</span></label>
+                <input class="form-input" type="text"
+                  placeholder="/reports" [(ngModel)]="folderPath" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">File Name Pattern <span class="required">*</span></label>
+                <input class="form-input"
+                  [class.input-error]="fileNamePattern && getFileFormatError()"
+                  type="text"
+                  placeholder="daily_report_*.csv"
+                  [(ngModel)]="fileNamePattern" />
+                <span class="form-hint">Must contain a wildcard (*)</span>
+                @if (fileNamePattern && getFileFormatError()) {
+                  <span class="field-error">{{ getFileFormatError() }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Expected Format</label>
+              <select class="form-select" [(ngModel)]="expectedFormat">
+                @for (f of fileFormatOptions; track f) {
+                  <option [value]="f">{{ f }}</option>
+                }
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="card-title-row">
+            <span class="card-title">Validation Rules</span>
+            <button class="btn-add-inline" (click)="addRule()">
+              <mat-icon>add</mat-icon> Add Rule
+            </button>
+          </div>
+          <div class="card-body">
+            @for (rule of validationRules; track $index) {
+              <div class="rule-row">
+                <div class="form-field">
+                  <label class="form-label">Rule</label>
+                  <select class="form-select" [(ngModel)]="rule.rule">
+                    @for (r of validationRuleOptions; track r) {
+                      <option [value]="r">{{ r }}</option>
+                    }
+                  </select>
+                </div>
+                @if (ruleRequiresValue(rule.rule)) {
+                  <div class="form-field flex-2">
+                    <label class="form-label">Value <span class="required">*</span></label>
+                    <input class="form-input" type="text"
+                      [(ngModel)]="rule.value" />
+                  </div>
+                }
+                <button class="icon-btn danger"
+                  [disabled]="validationRules.length === 1"
+                  (click)="removeRule($index)">
+                  <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+      }
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="cancel()">Cancel</button>
+        <button
+          class="btn-submit"
+          [disabled]="!isFormValid() || isLoading()"
+          (click)="submit()">
+          @if (isLoading()) {
+            <mat-icon class="spin">refresh</mat-icon>
+          }
+          Create Check
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>

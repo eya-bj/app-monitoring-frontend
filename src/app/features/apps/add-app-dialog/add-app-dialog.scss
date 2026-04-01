@@ -1,0 +1,164 @@
+$color-white: #ffffff;
+$color-border: #e5e7eb;
+$color-accent: #2563eb;
+$color-text: #111827;
+$color-text-muted: #6b7280;
+$color-danger: #ef4444;
+$color-danger-bg: #fee2e2;
+$color-bg: #f3f4f6;
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  min-width: 440px;
+}
+
+// ─── Header ───────────────────────────────────────────────────────
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+
+  .dialog-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: $color-text;
+    margin: 0;
+  }
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-muted;
+  transition: background 150ms ease;
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  &:hover { background: $color-bg; }
+}
+
+// ─── Body ─────────────────────────────────────────────────────────
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: $color-danger-bg;
+  color: $color-danger;
+  border-radius: 8px;
+  font-size: 13px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $color-text;
+
+  .required { color: $color-danger; }
+}
+
+.form-input,
+.form-select {
+  padding: 10px 12px;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  font-size: 14px;
+  color: $color-text;
+  background: $color-white;
+  outline: none;
+  transition: border-color 150ms ease;
+
+  &::placeholder { color: $color-text-muted; }
+  &:focus { border-color: $color-accent; }
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+// ─── Footer ───────────────────────────────────────────────────────
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 24px 20px;
+}
+
+.btn-cancel {
+  padding: 9px 18px;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  background: $color-white;
+  color: $color-text-muted;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover { background: $color-bg; }
+}
+
+.btn-submit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $color-accent;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  &:hover:not([disabled]) { background: #1d4ed8; }
+  &[disabled] { opacity: 0.5; cursor: not-allowed; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; }
+
+.input-error {
+  border-color: $color-danger !important;
+
+  &:focus {
+    border-color: $color-danger !important;
+  }
+}
+
+.field-error {
+  font-size: 12px;
+  color: $color-danger;
+  margin-top: 2px;
+}
