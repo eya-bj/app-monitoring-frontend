@@ -615,3 +615,25 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   font-size: 12px;
   color: $color-danger;
 }
+.node-active {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.node-inactive {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #ffebee;
+  color: #c62828;
+  font-weight: 500;
+}
+
+.node-active-toggle {
+  min-width: auto;
+  flex: 0;
+}

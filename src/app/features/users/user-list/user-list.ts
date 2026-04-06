@@ -194,8 +194,10 @@ export class UserListComponent implements OnInit {
   }
 
   getAppCount(userId: number): string {
+    const role = this.currentUser()?.role;
     const count = this.appCounts().get(userId);
     if (count === undefined) return '—';
+    if (count === 0 && (role === 'SYSTEM_ADMIN' || role === 'ADMIN')) return 'All apps';
     if (count === 0) return 'No access';
     return count === 1 ? '1 application' : `${count} applications`;
   }

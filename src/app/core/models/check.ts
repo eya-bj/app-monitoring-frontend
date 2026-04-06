@@ -29,6 +29,7 @@ export interface ClusterNodeResponse {
   port: number;
   label: string;
   isActive: boolean;
+
 }
 
 export interface ClusterCheckConfig {
@@ -100,6 +101,7 @@ export interface ClusterNodeRequest {
   ipAddress: string;
   port: number;
   label: string;
+  isActive?: boolean;
 }
 
 export interface CreateClusterCheckRequest {

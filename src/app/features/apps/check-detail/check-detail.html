@@ -1,5 +1,4 @@
 <div class="page">
-
   <!-- Breadcrumb -->
   <div class="breadcrumb">
     <span class="breadcrumb-link" (click)="goToApps()">Applications</span>
@@ -28,10 +27,12 @@
             <mat-icon>edit</mat-icon>
             Edit
           </button>
-          <button class="btn-toggle"
+          <button
+            class="btn-toggle"
             [class.btn-disable]="check()!.status === 'ENABLED'"
             [class.btn-enable]="check()!.status === 'DISABLED'"
-            (click)="toggleCheck()">
+            (click)="toggleCheck()"
+          >
             <mat-icon>
               {{ check()!.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}
             </mat-icon>
@@ -43,12 +44,8 @@
           </button>
         }
         @if (isEditing()) {
-          <button class="btn-cancel-edit" (click)="cancelEdit()">
-            Cancel
-          </button>
-          <button class="btn-save"
-            [disabled]="isSaving()"
-            (click)="saveEdit()">
+          <button class="btn-cancel-edit" (click)="cancelEdit()">Cancel</button>
+          <button class="btn-save" [disabled]="isSaving()" (click)="saveEdit()">
             @if (isSaving()) {
               <mat-icon class="spin">refresh</mat-icon>
             }
@@ -75,13 +72,10 @@
 
   @if (!isLoading() && check()) {
     <div class="two-col">
-
       <!-- LEFT: Check Info / Edit Form -->
       <div class="col-left">
-
         <!-- VIEW MODE -->
         @if (!isEditing()) {
-
           <!-- General Info -->
           <div class="card">
             <div class="card-header">
@@ -120,7 +114,7 @@
                 </div>
                 <div class="info-row">
                   <span class="info-label">Created</span>
-                  <span class="info-value">{{ check()!.createdAt | date:'M/d/yyyy' }}</span>
+                  <span class="info-value">{{ check()!.createdAt | date: 'M/d/yyyy' }}</span>
                 </div>
               </div>
             </div>
@@ -157,18 +151,27 @@
                   <div class="info-row">
                     <span class="info-label">Auth</span>
                     <span class="info-value">
-                      {{ check()!.clusterConfig!.authRequired ? check()!.clusterConfig!.authUsername : 'None' }}
+                      {{
+                        check()!.clusterConfig!.authRequired
+                          ? check()!.clusterConfig!.authUsername
+                          : 'None'
+                      }}
                     </span>
                   </div>
                 </div>
 
                 <div class="nodes-list">
-                  <span class="nodes-title">Nodes ({{ check()!.clusterConfig!.nodes.length }})</span>
+                  <span class="nodes-title"
+                    >Nodes ({{ check()!.clusterConfig!.nodes.length }})</span
+                  >
                   @for (node of check()!.clusterConfig!.nodes; track node.id) {
                     <div class="node-item">
                       <mat-icon>dns</mat-icon>
                       <span class="node-label">{{ node.label }}</span>
                       <span class="node-addr">{{ node.ipAddress }}:{{ node.port }}</span>
+                      <span [class]="node.isActive ? 'node-active' : 'node-inactive'">
+                        {{ node.isActive ? 'Active' : 'Inactive' }}
+                      </span>
                     </div>
                   }
                 </div>
@@ -192,7 +195,9 @@
                   <div class="info-row">
                     <span class="info-label">Host</span>
                     <span class="info-value mono">
-                      {{ check()!.dataConfig!.primaryDbHost }}:{{ check()!.dataConfig!.primaryDbPort }}
+                      {{ check()!.dataConfig!.primaryDbHost }}:{{
+                        check()!.dataConfig!.primaryDbPort
+                      }}
                     </span>
                   </div>
                   <div class="info-row">
@@ -218,7 +223,9 @@
                     <div class="info-row">
                       <span class="info-label">Host</span>
                       <span class="info-value mono">
-                        {{ check()!.dataConfig!.secondaryDbHost }}:{{ check()!.dataConfig!.secondaryDbPort }}
+                        {{ check()!.dataConfig!.secondaryDbHost }}:{{
+                          check()!.dataConfig!.secondaryDbPort
+                        }}
                       </span>
                     </div>
                     <div class="info-row">
@@ -255,9 +262,12 @@
                   </div>
                   <div class="form-field">
                     <label class="form-label">File Name Pattern</label>
-                    <input class="form-input"
+                    <input
+                      class="form-input"
                       [class.input-error]="editFileNamePattern && getFileFormatError()"
-                      type="text" [(ngModel)]="editFileNamePattern" />
+                      type="text"
+                      [(ngModel)]="editFileNamePattern"
+                    />
                     @if (editFileNamePattern && getFileFormatError()) {
                       <span class="field-error">{{ getFileFormatError() }}</span>
                     }
@@ -282,16 +292,13 @@
                     </div>
                   }
                 </div>
-
               </div>
             </div>
           }
-
         }
 
         <!-- EDIT MODE -->
         @if (isEditing()) {
-
           @if (errorMessage()) {
             <div class="error-banner">
               <mat-icon>error_outline</mat-icon>
@@ -324,13 +331,16 @@
               <div class="form-row">
                 <div class="form-field">
                   <label class="form-label">Consecutive Threshold</label>
-                  <input class="form-input" type="number" min="1"
-                    [(ngModel)]="editConsecutiveThreshold" />
+                  <input
+                    class="form-input"
+                    type="number"
+                    min="1"
+                    [(ngModel)]="editConsecutiveThreshold"
+                  />
                 </div>
                 <div class="form-field">
                   <label class="form-label">Description</label>
-                  <input class="form-input" type="text"
-                    [(ngModel)]="editDescription" />
+                  <input class="form-input" type="text" [(ngModel)]="editDescription" />
                 </div>
               </div>
             </div>
@@ -388,9 +398,12 @@
                     </div>
                     <div class="form-field">
                       <label class="form-label">New Password</label>
-                      <input class="form-input" type="password"
+                      <input
+                        class="form-input"
+                        type="password"
                         placeholder="Leave blank to keep current"
-                        [(ngModel)]="editAuthPassword" />
+                        [(ngModel)]="editAuthPassword"
+                      />
                     </div>
                   </div>
                 }
@@ -408,7 +421,7 @@
                 @for (node of editNodes; track $index) {
                   <div class="node-row">
                     <div class="form-field flex-2">
-                      <label class="form-label">IP Address</label>
+                      <label class="form-label">IP Address / Hostname </label>
                       <input class="form-input" type="text" [(ngModel)]="node.ipAddress" />
                     </div>
                     <div class="form-field">
@@ -418,6 +431,12 @@
                     <div class="form-field flex-2">
                       <label class="form-label">Label</label>
                       <input class="form-input" type="text" [(ngModel)]="node.label" />
+                    </div>
+                    <div class="form-field checkbox-field node-active-toggle">
+                      <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="node.isActive" />
+                        Active
+                      </label>
                     </div>
                     <button class="icon-btn danger"
                       [disabled]="editNodes.length === 1"
@@ -466,15 +485,17 @@
                   </div>
                   <div class="form-field">
                     <label class="form-label">New Password</label>
-                    <input class="form-input" type="password"
+                    <input
+                      class="form-input"
+                      type="password"
                       placeholder="Leave blank to keep current"
-                      [(ngModel)]="editPrimaryDbPassword" />
+                      [(ngModel)]="editPrimaryDbPassword"
+                    />
                   </div>
                 </div>
                 <div class="form-field">
                   <label class="form-label">Query A</label>
-                  <textarea class="form-textarea" rows="3"
-                    [(ngModel)]="editQueryA"></textarea>
+                  <textarea class="form-textarea" rows="3" [(ngModel)]="editQueryA"></textarea>
                 </div>
                 <div class="form-row">
                   <div class="form-field">
@@ -540,15 +561,17 @@
                     </div>
                     <div class="form-field">
                       <label class="form-label">New Password</label>
-                      <input class="form-input" type="password"
+                      <input
+                        class="form-input"
+                        type="password"
                         placeholder="Leave blank to keep current"
-                        [(ngModel)]="editSecondaryDbPassword" />
+                        [(ngModel)]="editSecondaryDbPassword"
+                      />
                     </div>
                   </div>
                   <div class="form-field">
                     <label class="form-label">Query B</label>
-                    <textarea class="form-textarea" rows="3"
-                      [(ngModel)]="editQueryB"></textarea>
+                    <textarea class="form-textarea" rows="3" [(ngModel)]="editQueryB"></textarea>
                   </div>
                 </div>
               </div>
@@ -577,9 +600,12 @@
                   </div>
                   <div class="form-field">
                     <label class="form-label">New Password</label>
-                    <input class="form-input" type="password"
+                    <input
+                      class="form-input"
+                      type="password"
                       placeholder="Leave blank to keep current"
-                      [(ngModel)]="editSftpPassword" />
+                      [(ngModel)]="editSftpPassword"
+                    />
                   </div>
                 </div>
                 <div class="form-row">
@@ -627,9 +653,11 @@
                         <input class="form-input" type="text" [(ngModel)]="rule.value" />
                       </div>
                     }
-                    <button class="icon-btn danger"
+                    <button
+                      class="icon-btn danger"
                       [disabled]="editValidationRules.length === 1"
-                      (click)="removeRule($index)">
+                      (click)="removeRule($index)"
+                    >
                       <mat-icon>remove_circle_outline</mat-icon>
                     </button>
                   </div>
@@ -637,9 +665,7 @@
               </div>
             </div>
           }
-
         }
-
       </div>
 
       <!-- RIGHT: Results Placeholder -->
@@ -659,8 +685,6 @@
           </div>
         </div>
       </div>
-
     </div>
   }
-
 </div>

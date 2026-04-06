@@ -166,10 +166,11 @@ export class CheckDetailComponent implements OnInit {
       this.editAuthUsername = c.clusterConfig.authUsername ?? '';
       this.editHealthStrategy = c.clusterConfig.healthStrategy;
       this.editNodes = c.clusterConfig.nodes.map(n => ({
-        ipAddress: n.ipAddress,
-        port: n.port,
-        label: n.label,
-      }));
+      ipAddress: n.ipAddress,
+      port: n.port,
+      label: n.label,
+      isActive: n.isActive ?? true,
+    }));
     }
 
     if (c.checkType === 'DATA' && c.dataConfig) {
@@ -339,12 +340,30 @@ export class CheckDetailComponent implements OnInit {
 
   // ─── Node Helpers ─────────────────────────────────────
   addNode(): void {
-    this.editNodes.push({ ipAddress: '', port: 8080, label: '' });
-  }
+  this.editNodes.push({ ipAddress: '', port: 8080, label: '', isActive: true });
+}
 
   removeNode(index: number): void {
-    if (this.editNodes.length > 1) this.editNodes.splice(index, 1);
-  }
+  if (this.editNodes.length <= 1) return;
+
+  const node = this.editNodes[index];
+  const ref = this.dialog.open(ConfirmDialogComponent, {
+    position: { top: '80px' },
+    data: {
+      title: 'Delete Node',
+      message: `Are you sure you want to delete "${node.label || 'this node'}"? This will permanently remove the node and its execution history.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      isDanger: true,
+    },
+  });
+
+  ref.afterClosed().subscribe((confirmed) => {
+    if (confirmed) {
+      this.editNodes.splice(index, 1);
+    }
+  });
+}
 
   // ─── Rule Helpers ─────────────────────────────────────
   addRule(): void {
