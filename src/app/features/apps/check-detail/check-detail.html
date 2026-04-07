@@ -501,7 +501,7 @@
                   <div class="form-field">
                     <label class="form-label">Comparison Type</label>
                     <select class="form-select" [(ngModel)]="editComparisonType">
-                      @for (ct of comparisonTypeOptions; track ct) {
+                      @for (ct of editFilteredComparisonTypes; track ct) {
                         <option [value]="ct">{{ ct }}</option>
                       }
                     </select>
@@ -520,7 +520,24 @@
                   }
                 </div>
                 <label class="checkbox-label">
-                  <input type="checkbox" [(ngModel)]="editHasSecondaryDb" />
+                  <input type="checkbox" [(ngModel)]="editHasQueryB"
+                    (ngModelChange)="onEditModeChange()" />
+                  Add Second Query (Query B)
+                </label>
+
+                @if (editHasQueryB && !editHasSecondaryDb) {
+                  <div class="form-field">
+                    <label class="form-label">Query B <span class="required">*</span></label>
+                    <textarea class="form-textarea" rows="3"
+                      placeholder="SELECT COUNT(*) FROM invoices"
+                      [(ngModel)]="editQueryB"></textarea>
+                    <span class="form-hint">Both queries will run on the primary database</span>
+                  </div>
+                }
+
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="editHasSecondaryDb"
+                    (ngModelChange)="onEditModeChange()" />
                   Has Secondary Database
                 </label>
               </div>
@@ -570,8 +587,10 @@
                     </div>
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Query B</label>
-                    <textarea class="form-textarea" rows="3" [(ngModel)]="editQueryB"></textarea>
+                    <label class="form-label">Query B <span class="form-hint">(optional — leave empty to use Query A on both databases)</span></label>
+                    <textarea class="form-textarea" rows="3"
+                      placeholder="Leave empty to use Query A on both databases"
+                      [(ngModel)]="editQueryB"></textarea>
                   </div>
                 </div>
               </div>

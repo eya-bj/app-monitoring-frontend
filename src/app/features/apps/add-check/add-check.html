@@ -335,7 +335,7 @@
               <div class="form-field">
                 <label class="form-label">Comparison Type <span class="required">*</span></label>
                 <select class="form-select" [(ngModel)]="comparisonType">
-                  @for (ct of comparisonTypeOptions; track ct) {
+                  @for (ct of filteredComparisonTypes; track ct) {
                     <option [value]="ct">{{ ct }}</option>
                   }
                 </select>
@@ -358,7 +358,26 @@
 
             <div class="section-toggle">
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="hasSecondaryDb" />
+                <input type="checkbox" [(ngModel)]="hasQueryB"
+                  (ngModelChange)="onModeChange()" />
+                Add Second Query (Query B)
+              </label>
+            </div>
+
+            @if (hasQueryB && !hasSecondaryDb) {
+              <div class="form-field">
+                <label class="form-label">Query B <span class="required">*</span></label>
+                <textarea class="form-textarea" rows="3"
+                  placeholder="SELECT COUNT(*) FROM invoices"
+                  [(ngModel)]="queryB"></textarea>
+                <span class="form-hint">Both queries will run on the primary database</span>
+              </div>
+            }
+
+            <div class="section-toggle">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="hasSecondaryDb"
+                  (ngModelChange)="onModeChange()" />
                 Add Secondary Database
               </label>
             </div>
@@ -414,9 +433,9 @@
               </div>
 
               <div class="form-field">
-                <label class="form-label">Query B</label>
+                <label class="form-label">Query B <span class="form-hint">(optional — leave empty to use Query A on both databases)</span></label>
                 <textarea class="form-textarea" rows="3"
-                  placeholder="SELECT COUNT(*) FROM transactions"
+                  placeholder="Leave empty to use Query A on both databases"
                   [(ngModel)]="queryB"></textarea>
               </div>
 

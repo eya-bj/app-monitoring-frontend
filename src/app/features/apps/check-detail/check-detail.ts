@@ -79,6 +79,7 @@ export class CheckDetailComponent implements OnInit {
   editSecondaryDbName = '';
   editSecondaryDbUsername = '';
   editSecondaryDbPassword = '';
+  editHasQueryB = false;
   editQueryB = '';
   editComparisonType: ComparisonType = 'NOT_ZERO';
   editExpectedValue: number | null = null;
@@ -174,25 +175,26 @@ export class CheckDetailComponent implements OnInit {
     }
 
     if (c.checkType === 'DATA' && c.dataConfig) {
-      this.editPrimaryDbType = c.dataConfig.primaryDbType;
-      this.editPrimaryDbHost = c.dataConfig.primaryDbHost;
-      this.editPrimaryDbPort = c.dataConfig.primaryDbPort;
-      this.editPrimaryDbName = c.dataConfig.primaryDbName;
-      this.editPrimaryDbUsername = c.dataConfig.primaryDbUsername;
-      this.editQueryA = c.dataConfig.queryA;
-      this.editComparisonType = c.dataConfig.comparisonType;
-      this.editExpectedValue = c.dataConfig.expectedValue ?? null;
-      this.editToleranceValue = c.dataConfig.toleranceValue ?? null;
-      this.editHasSecondaryDb = !!c.dataConfig.secondaryDbHost;
-      if (this.editHasSecondaryDb) {
-        this.editSecondaryDbType = c.dataConfig.secondaryDbType!;
-        this.editSecondaryDbHost = c.dataConfig.secondaryDbHost!;
-        this.editSecondaryDbPort = c.dataConfig.secondaryDbPort!;
-        this.editSecondaryDbName = c.dataConfig.secondaryDbName!;
-        this.editSecondaryDbUsername = c.dataConfig.secondaryDbUsername!;
-        this.editQueryB = c.dataConfig.queryB!;
-      }
+    this.editPrimaryDbType = c.dataConfig.primaryDbType;
+    this.editPrimaryDbHost = c.dataConfig.primaryDbHost;
+    this.editPrimaryDbPort = c.dataConfig.primaryDbPort;
+    this.editPrimaryDbName = c.dataConfig.primaryDbName;
+    this.editPrimaryDbUsername = c.dataConfig.primaryDbUsername;
+    this.editQueryA = c.dataConfig.queryA;
+    this.editComparisonType = c.dataConfig.comparisonType;
+    this.editExpectedValue = c.dataConfig.expectedValue ?? null;
+    this.editToleranceValue = c.dataConfig.toleranceValue ?? null;
+    this.editHasSecondaryDb = !!c.dataConfig.secondaryDbHost;
+    this.editHasQueryB = !!c.dataConfig.queryB;          // ← add this
+    this.editQueryB = c.dataConfig.queryB ?? '';          // ← always set queryB
+    if (this.editHasSecondaryDb) {
+      this.editSecondaryDbType = c.dataConfig.secondaryDbType!;
+      this.editSecondaryDbHost = c.dataConfig.secondaryDbHost!;
+      this.editSecondaryDbPort = c.dataConfig.secondaryDbPort!;
+      this.editSecondaryDbName = c.dataConfig.secondaryDbName!;
+      this.editSecondaryDbUsername = c.dataConfig.secondaryDbUsername!;
     }
+  }
 
     if (c.checkType === 'FILE' && c.fileConfig) {
       this.editSftpHost = c.fileConfig.sftpHost;
@@ -262,44 +264,44 @@ export class CheckDetailComponent implements OnInit {
   }
 
   private saveData(): void {
-    const request: UpdateDataCheckRequest = {
-      name: this.editName.trim(),
-      description: this.editDescription.trim() || undefined,
-      cronExpression: this.editCronExpression,
-      severity: this.editSeverity,
-      consecutiveThreshold: this.editConsecutiveThreshold,
-      primaryDbType: this.editPrimaryDbType,
-      primaryDbHost: this.editPrimaryDbHost,
-      primaryDbPort: this.editPrimaryDbPort,
-      primaryDbName: this.editPrimaryDbName,
-      primaryDbUsername: this.editPrimaryDbUsername,
-      primaryDbPassword: this.editPrimaryDbPassword.trim() || undefined,
-      queryA: this.editQueryA,
-      comparisonType: this.editComparisonType,
-      expectedValue: this.editExpectedValue ?? undefined,
-      toleranceValue: this.editToleranceValue ?? undefined,
-      secondaryDbType: this.editHasSecondaryDb ? this.editSecondaryDbType : undefined,
-      secondaryDbHost: this.editHasSecondaryDb ? this.editSecondaryDbHost : undefined,
-      secondaryDbPort: this.editHasSecondaryDb ? this.editSecondaryDbPort : undefined,
-      secondaryDbName: this.editHasSecondaryDb ? this.editSecondaryDbName : undefined,
-      secondaryDbUsername: this.editHasSecondaryDb ? this.editSecondaryDbUsername : undefined,
-      secondaryDbPassword: this.editHasSecondaryDb && this.editSecondaryDbPassword.trim()
-        ? this.editSecondaryDbPassword : undefined,
-      queryB: this.editHasSecondaryDb ? this.editQueryB : undefined,
-    };
-    this.checkService.updateDataCheck(this.checkId, request).subscribe({
-      next: (updated) => {
-        this.check.set(updated);
-        this.isSaving.set(false);
-        this.isEditing.set(false);
-        this.showSuccess('Check Updated', 'Check has been updated successfully.');
-      },
-      error: (err: any) => {
-        this.isSaving.set(false);
-        this.errorMessage.set(err?.error?.message ?? 'Failed to update check.');
-      },
-    });
-  }
+  const request: UpdateDataCheckRequest = {
+    name: this.editName.trim(),
+    description: this.editDescription.trim() || undefined,
+    cronExpression: this.editCronExpression,
+    severity: this.editSeverity,
+    consecutiveThreshold: this.editConsecutiveThreshold,
+    primaryDbType: this.editPrimaryDbType,
+    primaryDbHost: this.editPrimaryDbHost,
+    primaryDbPort: this.editPrimaryDbPort,
+    primaryDbName: this.editPrimaryDbName,
+    primaryDbUsername: this.editPrimaryDbUsername,
+    primaryDbPassword: this.editPrimaryDbPassword.trim() || undefined,
+    queryA: this.editQueryA,
+    comparisonType: this.editComparisonType,
+    expectedValue: this.editExpectedValue ?? undefined,
+    toleranceValue: this.editToleranceValue ?? undefined,
+    secondaryDbType: this.editHasSecondaryDb ? this.editSecondaryDbType : undefined,
+    secondaryDbHost: this.editHasSecondaryDb ? this.editSecondaryDbHost : undefined,
+    secondaryDbPort: this.editHasSecondaryDb ? this.editSecondaryDbPort : undefined,
+    secondaryDbName: this.editHasSecondaryDb ? this.editSecondaryDbName : undefined,
+    secondaryDbUsername: this.editHasSecondaryDb ? this.editSecondaryDbUsername : undefined,
+    secondaryDbPassword: this.editHasSecondaryDb && this.editSecondaryDbPassword.trim()
+      ? this.editSecondaryDbPassword : undefined,
+    queryB: this.editHasQueryB ? this.editQueryB : undefined,
+  };
+  this.checkService.updateDataCheck(this.checkId, request).subscribe({
+    next: (updated) => {
+      this.check.set(updated);
+      this.isSaving.set(false);
+      this.isEditing.set(false);
+      this.showSuccess('Check Updated', 'Check has been updated successfully.');
+    },
+    error: (err: any) => {
+      this.isSaving.set(false);
+      this.errorMessage.set(err?.error?.message ?? 'Failed to update check.');
+    },
+  });
+}
 
   private saveFile(): void {
     const formatError = this.getFileFormatError();
@@ -488,5 +490,20 @@ export class CheckDetailComponent implements OnInit {
     return 'File pattern ends with .txt but format is set to ' + this.editExpectedFormat;
 
   return '';
+}
+get editFilteredComparisonTypes(): ComparisonType[] {
+  const isSingleValueMode = !this.editHasSecondaryDb && !this.editHasQueryB;
+  if (isSingleValueMode) {
+    return ['NOT_ZERO', 'EQUALS_EXPECTED'];
+  } else {
+    return ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
+  }
+}
+
+onEditModeChange(): void {
+  const valid = this.editFilteredComparisonTypes;
+  if (!valid.includes(this.editComparisonType)) {
+    this.editComparisonType = valid[0];
+  }
 }
 }

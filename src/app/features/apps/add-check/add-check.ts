@@ -62,6 +62,7 @@ export class AddCheckComponent implements OnInit {
   secondaryDbName = '';
   secondaryDbUsername = '';
   secondaryDbPassword = '';
+  hasQueryB = false;
   queryB = '';
   comparisonType: ComparisonType = 'NOT_ZERO';
   expectedValue: number | null = null;
@@ -246,45 +247,45 @@ export class AddCheckComponent implements OnInit {
 
   }
 
-  private submitData(): void {
-    const request: CreateDataCheckRequest = {
-      name: this.name.trim(),
-      description: this.description.trim() || undefined,
-      cronExpression: this.cronExpression.trim(),
-      severity: this.severity,
-      consecutiveThreshold: this.consecutiveThreshold,
-      primaryDbType: this.primaryDbType,
-      primaryDbHost: this.primaryDbHost.trim(),
-      primaryDbPort: this.primaryDbPort,
-      primaryDbName: this.primaryDbName.trim(),
-      primaryDbUsername: this.primaryDbUsername.trim(),
-      primaryDbPassword: this.primaryDbPassword.trim(),
-      queryA: this.queryA.trim(),
-      comparisonType: this.comparisonType,
-      expectedValue: this.expectedValue ?? undefined,
-      toleranceValue: this.toleranceValue ?? undefined,
-      secondaryDbType: this.hasSecondaryDb ? this.secondaryDbType : undefined,
-      secondaryDbHost: this.hasSecondaryDb ? this.secondaryDbHost.trim() : undefined,
-      secondaryDbPort: this.hasSecondaryDb ? this.secondaryDbPort : undefined,
-      secondaryDbName: this.hasSecondaryDb ? this.secondaryDbName.trim() : undefined,
-      secondaryDbUsername: this.hasSecondaryDb ? this.secondaryDbUsername.trim() : undefined,
-      secondaryDbPassword: this.hasSecondaryDb ? this.secondaryDbPassword.trim() : undefined,
-      queryB: this.hasSecondaryDb ? this.queryB.trim() : undefined,
-    };
-    this.checkService.createDataCheck(this.appId, request).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.router.navigate(
-          ['/apps', this.appId],
-          { queryParams: { tab: 'checks', action: 'created' } }
-        );
-      },
-      error: (err: any) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(err?.error?.message ?? 'Failed to create check.');
-      },
-    });
-  }
+private submitData(): void {
+  const request: CreateDataCheckRequest = {
+    name: this.name.trim(),
+    description: this.description.trim() || undefined,
+    cronExpression: this.cronExpression.trim(),
+    severity: this.severity,
+    consecutiveThreshold: this.consecutiveThreshold,
+    primaryDbType: this.primaryDbType,
+    primaryDbHost: this.primaryDbHost.trim(),
+    primaryDbPort: this.primaryDbPort,
+    primaryDbName: this.primaryDbName.trim(),
+    primaryDbUsername: this.primaryDbUsername.trim(),
+    primaryDbPassword: this.primaryDbPassword.trim(),
+    queryA: this.queryA.trim(),
+    comparisonType: this.comparisonType,
+    expectedValue: this.expectedValue ?? undefined,
+    toleranceValue: this.toleranceValue ?? undefined,
+    secondaryDbType: this.hasSecondaryDb ? this.secondaryDbType : undefined,
+    secondaryDbHost: this.hasSecondaryDb ? this.secondaryDbHost.trim() : undefined,
+    secondaryDbPort: this.hasSecondaryDb ? this.secondaryDbPort : undefined,
+    secondaryDbName: this.hasSecondaryDb ? this.secondaryDbName.trim() : undefined,
+    secondaryDbUsername: this.hasSecondaryDb ? this.secondaryDbUsername.trim() : undefined,
+    secondaryDbPassword: this.hasSecondaryDb ? this.secondaryDbPassword.trim() : undefined,
+    queryB: this.hasQueryB ? this.queryB.trim() : undefined,
+  };
+  this.checkService.createDataCheck(this.appId, request).subscribe({
+    next: () => {
+      this.isLoading.set(false);
+      this.router.navigate(
+        ['/apps', this.appId],
+        { queryParams: { tab: 'checks', action: 'created' } }
+      );
+    },
+    error: (err: any) => {
+      this.isLoading.set(false);
+      this.errorMessage.set(err?.error?.message ?? 'Failed to create check.');
+    },
+  });
+}
 
   private submitFile(): void {
     const request: CreateFileCheckRequest = {
@@ -337,5 +338,19 @@ getFileFormatError(): string {
     return 'File pattern ends with .txt but format is set to ' + this.expectedFormat;
 
   return '';
+}
+get filteredComparisonTypes(): ComparisonType[] {
+  const isSingleValueMode = !this.hasSecondaryDb && !this.hasQueryB;
+  if (isSingleValueMode) {
+    return ['NOT_ZERO', 'EQUALS_EXPECTED'];
+  } else {
+    return ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
+  }
+}
+onModeChange(): void {
+  const valid = this.filteredComparisonTypes;
+  if (!valid.includes(this.comparisonType)) {
+    this.comparisonType = valid[0];
+  }
 }
 }
