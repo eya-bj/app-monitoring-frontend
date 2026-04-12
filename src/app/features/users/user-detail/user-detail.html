@@ -1,5 +1,4 @@
 <div class="page">
-
   <!-- Breadcrumb -->
   <div class="breadcrumb">
     <span class="breadcrumb-link" (click)="goBack()">Users</span>
@@ -43,10 +42,8 @@
 
   @if (!isLoading() && user()) {
     <div class="two-col" [class.single-col]="user()!.role !== 'USER'">
-
       <!-- LEFT COLUMN -->
       <div class="col-left">
-
         <!-- User Info Card -->
         <div class="card">
           <div class="card-header">
@@ -71,7 +68,9 @@
               <div class="info-row">
                 <span class="info-label">Last Login</span>
                 <span class="info-value">
-                  {{ user()!.lastLogin ? (user()!.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never' }}
+                  {{
+                    user()!.lastLogin ? (user()!.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never'
+                  }}
                 </span>
               </div>
               <div class="info-row">
@@ -91,7 +90,7 @@
         </div>
 
         <!-- Change Role Card -->
-        @if (user()!.role !== 'SYSTEM_ADMIN') {
+        @if (isSystemAdmin() && user()!.role !== 'SYSTEM_ADMIN') {
           <div class="card">
             <div class="card-header">
               <span class="card-title">Change Role</span>
@@ -104,13 +103,10 @@
                   }
                 }
               </select>
-              <button class="btn-primary" (click)="updateRole()">
-                Update Role
-              </button>
+              <button class="btn-primary" (click)="updateRole()">Update Role</button>
             </div>
           </div>
         }
-
       </div>
 
       <!-- RIGHT COLUMN — only for normal users -->
@@ -119,7 +115,7 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">Assigned Applications</span>
-              @if (isSystemAdmin()) {
+              @if (canManageUserApps()) {
                 <button class="btn-primary small" (click)="openAssignModal()">
                   <mat-icon>add</mat-icon>
                   Assign App
@@ -127,7 +123,6 @@
               }
             </div>
             <div class="card-body no-pad">
-
               @if (userApps().length === 0) {
                 <div class="empty-apps">
                   <mat-icon>apps</mat-icon>
@@ -144,26 +139,23 @@
                     <span class="app-name">{{ app.name }}</span>
                     <span class="app-date">{{ app.description }}</span>
                   </div>
-                  @if (isSystemAdmin()) {
+                  @if (canManageUserApps()) {
                     <button class="icon-btn danger" matTooltip="Revoke" (click)="revokeApp(app.id)">
                       <mat-icon>remove_circle_outline</mat-icon>
                     </button>
                   }
                 </div>
               }
-
             </div>
           </div>
         </div>
       }
-
     </div>
   }
-
 </div>
 
 <!-- Assign App Modal — SYSTEM_ADMIN only -->
-@if (showAssignModal() && isSystemAdmin()) {
+@if (showAssignModal() && canManageUserApps()) {
   <div class="modal-overlay" (click)="closeAssignModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">

@@ -1,5 +1,4 @@
 <div class="page">
-
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-left">
@@ -21,7 +20,8 @@
         type="text"
         placeholder="Search users..."
         [(ngModel)]="searchQuery"
-        (ngModelChange)="onSearch()" />
+        (ngModelChange)="onSearch()"
+      />
     </div>
     <select class="role-filter" [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()">
       @for (option of roleOptions; track option.value) {
@@ -32,7 +32,6 @@
 
   <!-- Table Card -->
   <div class="table-card">
-
     <!-- Loading -->
     @if (isLoading()) {
       <div class="state-container">
@@ -87,10 +86,10 @@
               </td>
               <!-- Last Login -->
               <td class="text-muted">
-                  {{ user.lastLogin ? (user.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never' }}
+                {{ user.lastLogin ? (user.lastLogin | date: 'M/d/yyyy, hh:mm a') : 'Never' }}
               </td>
               <!-- App Access -->
-              <td class="text-muted">{{ getAppCount(user.id) }}</td>
+              <td class="text-muted">{{ getAppCount(user) }}</td>
               <!-- Actions -->
               <td>
                 <div class="actions">
@@ -99,12 +98,16 @@
                       <mat-icon>visibility</mat-icon>
                     </button>
                     @if (canDelete(user)) {
-                      <button class="icon-btn danger" matTooltip="Delete" (click)="deleteUser(user.id)">
+                      <button
+                        class="icon-btn danger"
+                        matTooltip="Delete"
+                        (click)="deleteUser(user.id)"
+                      >
                         <mat-icon>delete</mat-icon>
                       </button>
                     }
                   } @else {
-                    <span class="text-muted" style="font-size: 13px;">—</span>
+                    <span class="text-muted" style="font-size: 13px">—</span>
                   }
                 </div>
               </td>
@@ -114,22 +117,30 @@
       </table>
 
       <!-- Pagination -->
-      @if (totalPages() > 1) {
+      @if (totalElements > 0) {
         <div class="pagination">
           <span class="pagination-info">
-            Page {{ currentPage() + 1 }} of {{ totalPages() }}
+            Showing {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+            of {{ totalElements }} users
           </span>
           <div class="pagination-controls">
-            <button class="page-btn" [disabled]="currentPage() === 0" (click)="prevPage()">
+            <select class="form-select size-select"
+              [(ngModel)]="pageSize"
+              (ngModelChange)="onPageSizeChange()">
+              <option [value]="5">5 / page</option>
+              <option [value]="10">10 / page</option>
+              <option [value]="20">20 / page</option>
+            </select>
+            <button class="page-btn" [disabled]="currentPage === 0" (click)="prevPage()">
               <mat-icon>chevron_left</mat-icon>
             </button>
-            <button class="page-btn" [disabled]="currentPage() === totalPages() - 1" (click)="nextPage()">
+            <span class="page-indicator">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+            <button class="page-btn" [disabled]="currentPage >= totalPages - 1" (click)="nextPage()">
               <mat-icon>chevron_right</mat-icon>
             </button>
           </div>
         </div>
       }
     }
-
   </div>
 </div>

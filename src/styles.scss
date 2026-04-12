@@ -37,3 +37,27 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+.custom-tooltip {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  max-width: 400px !important;
+  white-space: pre-wrap !important;
+}
+
+.mat-mdc-tooltip.custom-tooltip .mdc-tooltip__surface {
+  background: transparent !important;
+  color: #111827 !important;
+  font-size: 12px !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  max-width: 400px !important;
+  white-space: pre-wrap !important;
+}

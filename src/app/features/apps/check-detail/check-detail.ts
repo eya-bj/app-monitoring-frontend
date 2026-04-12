@@ -8,24 +8,42 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { CheckService } from '../../../core/services/check';
 import { AuthService } from '../../../core/services/auth';
+import { CheckResultService } from '../../../core/services/check-result';
+import { CheckResultResponse } from '../../../core/models/check-result';
 import { CronBuilderComponent } from '../../../shared/components/cron-builder/cron-builder';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../../shared/components/success-dialog/success-dialog';
 import { CronHumanPipe } from '../../../shared/pipes/cron-human-pipe';
 import {
-  CheckResponse, CheckType, Severity, HealthStrategy,
-  DbType, ComparisonType, FileFormat, ValidationRule,
-  UpdateClusterCheckRequest, UpdateDataCheckRequest,
-  UpdateFileCheckRequest, ClusterNodeRequest, FileCheckRuleRequest,
+  CheckResponse,
+  Severity,
+  HealthStrategy,
+  DbType,
+  ComparisonType,
+  FileFormat,
+  ValidationRule,
+  SftpAuthMethod,
+  UpdateClusterCheckRequest,
+  UpdateDataCheckRequest,
+  UpdateFileCheckRequest,
+  ClusterNodeRequest,
+  FileCheckRuleRequest,
 } from '../../../core/models/check';
 
 @Component({
   selector: 'check-detail',
   standalone: true,
   imports: [
-    CommonModule, DatePipe, RouterModule, FormsModule,
-    MatIconModule, MatTooltipModule, MatSnackBarModule,
-    MatDialogModule, CronBuilderComponent, CronHumanPipe,
+    CommonModule,
+    DatePipe,
+    RouterModule,
+    FormsModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    CronBuilderComponent,
+    CronHumanPipe,
   ],
   templateUrl: './check-detail.html',
   styleUrl: './check-detail.scss',
@@ -36,20 +54,21 @@ export class CheckDetailComponent implements OnInit {
   isEditing = signal(false);
   isSaving = signal(false);
   errorMessage = signal('');
+  recentResults = signal<CheckResultResponse[]>([]);
+  resultsLoading = signal(false);
 
   private appId!: number;
   private checkId!: number;
 
   currentUser = computed(() => this.authService.currentUser());
-  isAdmin = computed(() =>
-    this.currentUser()?.role === 'ADMIN' ||
-    this.currentUser()?.role === 'SYSTEM_ADMIN'
+  isAdmin = computed(
+    () => this.currentUser()?.role === 'ADMIN' || this.currentUser()?.role === 'SYSTEM_ADMIN',
   );
 
   // ─── Edit Fields — Common ─────────────────────────────
   editName = '';
   editDescription = '';
-  editCronExpression = '';
+  editCronExpression = '0 */5 * * * ?';
   editSeverity: Severity = 'HIGH';
   editConsecutiveThreshold = 3;
 
@@ -89,7 +108,9 @@ export class CheckDetailComponent implements OnInit {
   editSftpHost = '';
   editSftpPort = 22;
   editSftpUsername = '';
+  editSftpAuthMethod: 'PASSWORD' | 'SSH_KEY' = 'PASSWORD';
   editSftpPassword = '';
+  editSftpPrivateKey = '';
   editFolderPath = '';
   editFileNamePattern = '';
   editExpectedFormat: FileFormat = 'CSV';
@@ -98,19 +119,12 @@ export class CheckDetailComponent implements OnInit {
   // ─── Options ──────────────────────────────────────────
   severityOptions: Severity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
   dbTypeOptions: DbType[] = ['POSTGRESQL', 'MYSQL', 'ORACLE'];
-  comparisonTypeOptions: ComparisonType[] = [
-    'EQUALS', 'NOT_ZERO', 'EQUALS_EXPECTED',
-    'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE',
-  ];
   fileFormatOptions: FileFormat[] = ['CSV', 'TXT'];
+  authMethodOptions: SftpAuthMethod[] = ['PASSWORD', 'SSH_KEY'];
   validationRuleOptions: ValidationRule[] = [
     'EXISTS', 'NOT_TEMP', 'GENERATED_AFTER', 'SIZE_MIN',
     'HEADER_MATCH', 'ROW_COUNT_MIN', 'CONTAINS_STRING',
     'COLUMN_NUMERIC', 'NO_EMPTY_COLUMN',
-  ];
-  rulesRequiringValue: ValidationRule[] = [
-    'GENERATED_AFTER', 'SIZE_MIN', 'HEADER_MATCH',
-    'ROW_COUNT_MIN', 'CONTAINS_STRING', 'COLUMN_NUMERIC',
   ];
 
   constructor(
@@ -120,6 +134,7 @@ export class CheckDetailComponent implements OnInit {
     private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private checkResultService: CheckResultService,
   ) {}
 
   ngOnInit(): void {
@@ -135,6 +150,7 @@ export class CheckDetailComponent implements OnInit {
       next: (check) => {
         this.check.set(check);
         this.isLoading.set(false);
+        this.loadRecentResults();
       },
       error: () => {
         this.errorMessage.set('Failed to load check.');
@@ -143,9 +159,32 @@ export class CheckDetailComponent implements OnInit {
     });
   }
 
+  loadRecentResults(): void {
+    this.resultsLoading.set(true);
+    this.checkResultService.getRecentResults(this.checkId, 5).subscribe({
+      next: (results) => {
+        this.recentResults.set(results);
+        this.resultsLoading.set(false);
+      },
+      error: () => this.resultsLoading.set(false),
+    });
+  }
+
+  formatDuration(ms: number): string {
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
+  }
+
+  getResultStatusClass(status: string): string {
+    return status === 'PASSED' ? 'badge badge-passed' : 'badge badge-failed';
+  }
   goToApps(): void {
-  this.router.navigate(['/apps']);
-}
+    this.router.navigate(['/apps']);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/apps', this.appId], { queryParams: { tab: 'checks' } });
+  }
 
   // ─── Edit Mode ────────────────────────────────────────
   startEdit(): void {
@@ -166,44 +205,47 @@ export class CheckDetailComponent implements OnInit {
       this.editAuthRequired = c.clusterConfig.authRequired;
       this.editAuthUsername = c.clusterConfig.authUsername ?? '';
       this.editHealthStrategy = c.clusterConfig.healthStrategy;
-      this.editNodes = c.clusterConfig.nodes.map(n => ({
-      ipAddress: n.ipAddress,
-      port: n.port,
-      label: n.label,
-      isActive: n.isActive ?? true,
-    }));
+      this.editNodes = c.clusterConfig.nodes.map((n) => ({
+        ipAddress: n.ipAddress,
+        port: n.port,
+        label: n.label,
+        isActive: n.isActive ?? true,
+      }));
     }
 
     if (c.checkType === 'DATA' && c.dataConfig) {
-    this.editPrimaryDbType = c.dataConfig.primaryDbType;
-    this.editPrimaryDbHost = c.dataConfig.primaryDbHost;
-    this.editPrimaryDbPort = c.dataConfig.primaryDbPort;
-    this.editPrimaryDbName = c.dataConfig.primaryDbName;
-    this.editPrimaryDbUsername = c.dataConfig.primaryDbUsername;
-    this.editQueryA = c.dataConfig.queryA;
-    this.editComparisonType = c.dataConfig.comparisonType;
-    this.editExpectedValue = c.dataConfig.expectedValue ?? null;
-    this.editToleranceValue = c.dataConfig.toleranceValue ?? null;
-    this.editHasSecondaryDb = !!c.dataConfig.secondaryDbHost;
-    this.editHasQueryB = !!c.dataConfig.queryB;          // ← add this
-    this.editQueryB = c.dataConfig.queryB ?? '';          // ← always set queryB
-    if (this.editHasSecondaryDb) {
-      this.editSecondaryDbType = c.dataConfig.secondaryDbType!;
-      this.editSecondaryDbHost = c.dataConfig.secondaryDbHost!;
-      this.editSecondaryDbPort = c.dataConfig.secondaryDbPort!;
-      this.editSecondaryDbName = c.dataConfig.secondaryDbName!;
-      this.editSecondaryDbUsername = c.dataConfig.secondaryDbUsername!;
+      this.editPrimaryDbType = c.dataConfig.primaryDbType;
+      this.editPrimaryDbHost = c.dataConfig.primaryDbHost;
+      this.editPrimaryDbPort = c.dataConfig.primaryDbPort;
+      this.editPrimaryDbName = c.dataConfig.primaryDbName;
+      this.editPrimaryDbUsername = c.dataConfig.primaryDbUsername;
+      this.editQueryA = c.dataConfig.queryA;
+      this.editComparisonType = c.dataConfig.comparisonType;
+      this.editExpectedValue = c.dataConfig.expectedValue ?? null;
+      this.editToleranceValue = c.dataConfig.toleranceValue ?? null;
+      this.editHasSecondaryDb = !!c.dataConfig.secondaryDbHost;
+      this.editHasQueryB = !!c.dataConfig.queryB;
+      this.editQueryB = c.dataConfig.queryB ?? '';
+      if (this.editHasSecondaryDb) {
+        this.editSecondaryDbType = c.dataConfig.secondaryDbType!;
+        this.editSecondaryDbHost = c.dataConfig.secondaryDbHost!;
+        this.editSecondaryDbPort = c.dataConfig.secondaryDbPort!;
+        this.editSecondaryDbName = c.dataConfig.secondaryDbName!;
+        this.editSecondaryDbUsername = c.dataConfig.secondaryDbUsername!;
+      }
     }
-  }
 
     if (c.checkType === 'FILE' && c.fileConfig) {
       this.editSftpHost = c.fileConfig.sftpHost;
       this.editSftpPort = c.fileConfig.sftpPort;
       this.editSftpUsername = c.fileConfig.sftpUsername;
+      this.editSftpAuthMethod = c.fileConfig.sftpAuthMethod || 'PASSWORD';
+      this.editSftpPassword = c.fileConfig.sftpPassword || '';
+      this.editSftpPrivateKey = c.fileConfig.sftpPrivateKey || '';
       this.editFolderPath = c.fileConfig.folderPath;
       this.editFileNamePattern = c.fileConfig.fileNamePattern;
       this.editExpectedFormat = c.fileConfig.expectedFormat;
-      this.editValidationRules = c.fileConfig.validationRules.map(r => ({
+      this.editValidationRules = c.fileConfig.validationRules.map((r) => ({
         rule: r.rule,
         ruleOrder: r.ruleOrder,
         value: r.value,
@@ -221,10 +263,8 @@ export class CheckDetailComponent implements OnInit {
   saveEdit(): void {
     const c = this.check();
     if (!c) return;
-
     this.isSaving.set(true);
     this.errorMessage.set('');
-
     switch (c.checkType) {
       case 'CLUSTER': this.saveCluster(); break;
       case 'DATA':    this.saveData();    break;
@@ -264,49 +304,66 @@ export class CheckDetailComponent implements OnInit {
   }
 
   private saveData(): void {
-  const request: UpdateDataCheckRequest = {
-    name: this.editName.trim(),
-    description: this.editDescription.trim() || undefined,
-    cronExpression: this.editCronExpression,
-    severity: this.editSeverity,
-    consecutiveThreshold: this.editConsecutiveThreshold,
-    primaryDbType: this.editPrimaryDbType,
-    primaryDbHost: this.editPrimaryDbHost,
-    primaryDbPort: this.editPrimaryDbPort,
-    primaryDbName: this.editPrimaryDbName,
-    primaryDbUsername: this.editPrimaryDbUsername,
-    primaryDbPassword: this.editPrimaryDbPassword.trim() || undefined,
-    queryA: this.editQueryA,
-    comparisonType: this.editComparisonType,
-    expectedValue: this.editExpectedValue ?? undefined,
-    toleranceValue: this.editToleranceValue ?? undefined,
-    secondaryDbType: this.editHasSecondaryDb ? this.editSecondaryDbType : undefined,
-    secondaryDbHost: this.editHasSecondaryDb ? this.editSecondaryDbHost : undefined,
-    secondaryDbPort: this.editHasSecondaryDb ? this.editSecondaryDbPort : undefined,
-    secondaryDbName: this.editHasSecondaryDb ? this.editSecondaryDbName : undefined,
-    secondaryDbUsername: this.editHasSecondaryDb ? this.editSecondaryDbUsername : undefined,
-    secondaryDbPassword: this.editHasSecondaryDb && this.editSecondaryDbPassword.trim()
-      ? this.editSecondaryDbPassword : undefined,
-    queryB: this.editHasQueryB ? this.editQueryB : undefined,
-  };
-  this.checkService.updateDataCheck(this.checkId, request).subscribe({
-    next: (updated) => {
-      this.check.set(updated);
+    const queryAError = this.getQueryError(this.editQueryA, 'Query A');
+    if (queryAError) {
+      this.errorMessage.set(queryAError);
       this.isSaving.set(false);
-      this.isEditing.set(false);
-      this.showSuccess('Check Updated', 'Check has been updated successfully.');
-    },
-    error: (err: any) => {
-      this.isSaving.set(false);
-      this.errorMessage.set(err?.error?.message ?? 'Failed to update check.');
-    },
-  });
-}
+      return;
+    }
+    const request: UpdateDataCheckRequest = {
+      name: this.editName.trim(),
+      description: this.editDescription.trim() || undefined,
+      cronExpression: this.editCronExpression,
+      severity: this.editSeverity,
+      consecutiveThreshold: this.editConsecutiveThreshold,
+      primaryDbType: this.editPrimaryDbType,
+      primaryDbHost: this.editPrimaryDbHost,
+      primaryDbPort: this.editPrimaryDbPort,
+      primaryDbName: this.editPrimaryDbName,
+      primaryDbUsername: this.editPrimaryDbUsername,
+      primaryDbPassword: this.editPrimaryDbPassword.trim() || undefined,
+      queryA: this.editQueryA,
+      comparisonType: this.editComparisonType,
+      expectedValue: this.editExpectedValue ?? undefined,
+      toleranceValue: this.editToleranceValue ?? undefined,
+      secondaryDbType: this.editHasSecondaryDb ? this.editSecondaryDbType : undefined,
+      secondaryDbHost: this.editHasSecondaryDb ? this.editSecondaryDbHost : undefined,
+      secondaryDbPort: this.editHasSecondaryDb ? this.editSecondaryDbPort : undefined,
+      secondaryDbName: this.editHasSecondaryDb ? this.editSecondaryDbName : undefined,
+      secondaryDbUsername: this.editHasSecondaryDb ? this.editSecondaryDbUsername : undefined,
+      secondaryDbPassword: this.editHasSecondaryDb && this.editSecondaryDbPassword.trim()
+        ? this.editSecondaryDbPassword : undefined,
+      queryB: this.editHasQueryB ? this.editQueryB : undefined,
+    };
+    this.checkService.updateDataCheck(this.checkId, request).subscribe({
+      next: (updated) => {
+        this.check.set(updated);
+        this.isSaving.set(false);
+        this.isEditing.set(false);
+        this.showSuccess('Check Updated', 'Check has been updated successfully.');
+      },
+      error: (err: any) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err?.error?.message ?? 'Failed to update check.');
+      },
+    });
+  }
 
   private saveFile(): void {
+    if (this.hasRuleErrors()) {
+      this.errorMessage.set('Please fix validation rule errors before saving.');
+      this.isSaving.set(false);
+      return;
+    }
     const formatError = this.getFileFormatError();
     if (formatError) {
       this.errorMessage.set(formatError);
+      this.isSaving.set(false);
+      return;
+    }
+    const folderError = this.getFolderPathError();
+    if (folderError) {
+      this.errorMessage.set(folderError);
       this.isSaving.set(false);
       return;
     }
@@ -320,7 +377,11 @@ export class CheckDetailComponent implements OnInit {
       sftpHost: this.editSftpHost,
       sftpPort: this.editSftpPort,
       sftpUsername: this.editSftpUsername,
-      sftpPassword: this.editSftpPassword.trim() || undefined,
+      sftpAuthMethod: this.editSftpAuthMethod,
+      sftpPassword: this.editSftpAuthMethod === 'PASSWORD'
+        ? this.editSftpPassword.trim() || undefined : undefined,
+      sftpPrivateKey: this.editSftpAuthMethod === 'SSH_KEY'
+        ? this.editSftpPrivateKey.trim() || undefined : undefined,
       folderPath: this.editFolderPath,
       fileNamePattern: this.editFileNamePattern,
       expectedFormat: this.editExpectedFormat,
@@ -342,30 +403,26 @@ export class CheckDetailComponent implements OnInit {
 
   // ─── Node Helpers ─────────────────────────────────────
   addNode(): void {
-  this.editNodes.push({ ipAddress: '', port: 8080, label: '', isActive: true });
-}
+    this.editNodes.push({ ipAddress: '', port: 8080, label: '', isActive: true });
+  }
 
   removeNode(index: number): void {
-  if (this.editNodes.length <= 1) return;
-
-  const node = this.editNodes[index];
-  const ref = this.dialog.open(ConfirmDialogComponent, {
-    position: { top: '80px' },
-    data: {
-      title: 'Delete Node',
-      message: `Are you sure you want to delete "${node.label || 'this node'}"? This will permanently remove the node and its execution history.`,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel',
-      isDanger: true,
-    },
-  });
-
-  ref.afterClosed().subscribe((confirmed) => {
-    if (confirmed) {
-      this.editNodes.splice(index, 1);
-    }
-  });
-}
+    if (this.editNodes.length <= 1) return;
+    const node = this.editNodes[index];
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      position: { top: '80px' },
+      data: {
+        title: 'Delete Node',
+        message: `Are you sure you want to delete "${node.label || 'this node'}"? This will permanently remove the node and its execution history.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        isDanger: true,
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) this.editNodes.splice(index, 1);
+    });
+  }
 
   // ─── Rule Helpers ─────────────────────────────────────
   addRule(): void {
@@ -382,13 +439,6 @@ export class CheckDetailComponent implements OnInit {
     }
   }
 
-  ruleRequiresValue(rule: ValidationRule): boolean {
-    return [
-      'GENERATED_AFTER', 'SIZE_MIN', 'HEADER_MATCH',
-      'ROW_COUNT_MIN', 'CONTAINS_STRING', 'COLUMN_NUMERIC',
-    ].includes(rule);
-  }
-
   // ─── Toggle / Delete ──────────────────────────────────
   toggleCheck(): void {
     const c = this.check();
@@ -396,14 +446,12 @@ export class CheckDetailComponent implements OnInit {
     const action = c.status === 'ENABLED'
       ? this.checkService.disableCheck(c.id)
       : this.checkService.enableCheck(c.id);
-
     action.subscribe({
       next: (updated) => this.check.set(updated),
       error: (err: any) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to update status.',
-          'Close', { duration: 3000 }
-        );
+        this.snackBar.open(err?.error?.message || 'Failed to update status.', 'Close', {
+          duration: 3000,
+        });
       },
     });
   }
@@ -423,29 +471,132 @@ export class CheckDetailComponent implements OnInit {
       if (!confirmed) return;
       this.checkService.deleteCheck(this.checkId).subscribe({
         next: () => {
-          this.router.navigate(
-            ['/apps', this.appId],
-            { queryParams: { tab: 'checks', action: 'deleted' } }
-          );
+          this.router.navigate(['/apps', this.appId], {
+            queryParams: { tab: 'checks', action: 'deleted' },
+          });
         },
         error: (err: any) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete check.',
-            'Close', { duration: 3000 }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to delete check.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
   }
 
-  // ─── Helpers ──────────────────────────────────────────
-  private showSuccess(title: string, message: string): void {
-    this.dialog.open(SuccessDialogComponent, {
-      position: { top: '80px' },
-      data: { title, message },
-    });
+  // ─── Cluster Validation Helpers ───────────────────────
+  getEditStatusCodeError(): string {
+    if (!this.editExpectedStatusCode) return 'Status code is required';
+    if (this.editExpectedStatusCode < 100 || this.editExpectedStatusCode > 599)
+      return 'Status code must be between 100 and 599';
+    return '';
   }
 
+  getEditTimeoutError(): string {
+    if (!this.editTimeoutSeconds) return 'Timeout is required';
+    if (this.editTimeoutSeconds < 1 || this.editTimeoutSeconds > 60)
+      return 'Timeout must be between 1 and 60 seconds';
+    return '';
+  }
+
+  getNodePortError(port: number): string {
+    if (!port) return 'Port is required';
+    if (port < 1 || port > 65535) return 'Port must be between 1 and 65535';
+    return '';
+  }
+
+  // ─── Data Validation Helpers ──────────────────────────
+  getQueryError(query: string, fieldName: string): string {
+    if (!query.trim()) return fieldName + ' is required';
+    const upper = query.trim().toUpperCase();
+    const dangerous = ['DROP', 'DELETE', 'UPDATE', 'INSERT',
+                       'TRUNCATE', 'ALTER', 'CREATE'];
+    for (const keyword of dangerous) {
+      if (upper.includes(keyword))
+        return fieldName + ' must be a read-only SELECT query — "'
+          + keyword + '" is not allowed';
+    }
+    return '';
+  }
+
+  // ─── File Validation Helpers ──────────────────────────
+  getFolderPathError(): string {
+    if (!this.editFolderPath.trim()) return 'Folder path is required';
+    if (!this.editFolderPath.trim().startsWith('/'))
+      return 'Folder path must start with /';
+    return '';
+  }
+
+  getFileFormatError(): string {
+    if (!this.editFileNamePattern.trim()) return '';
+    const pattern = this.editFileNamePattern.trim().toLowerCase();
+    const format = this.editExpectedFormat.toLowerCase();
+    const dotIndex = pattern.lastIndexOf('.');
+    if (dotIndex !== -1) {
+      const ext = pattern.substring(dotIndex + 1).replace('*', '').trim();
+      if (ext && ext !== 'csv' && ext !== 'txt')
+        return 'File pattern must have a .csv or .txt extension';
+      if (ext === 'csv' && format !== 'csv')
+        return 'File pattern ends with .csv but format is set to ' + this.editExpectedFormat;
+      if (ext === 'txt' && format !== 'txt')
+        return 'File pattern ends with .txt but format is set to ' + this.editExpectedFormat;
+    }
+    return '';
+  }
+
+  ruleRequiresValue(rule: string): boolean {
+    return ['GENERATED_AFTER', 'SIZE_MIN', 'HEADER_MATCH',
+            'ROW_COUNT_MIN', 'CONTAINS_STRING',
+            'COLUMN_NUMERIC', 'NO_EMPTY_COLUMN'].includes(rule);
+  }
+
+  getRuleValueError(rule: string, value: string | undefined): string {
+    if (!this.ruleRequiresValue(rule)) return '';
+    if (!value || !value.trim()) return 'Value is required for this rule';
+    switch (rule) {
+      case 'GENERATED_AFTER':
+        return /^\d{2}:\d{2}$/.test(value.trim())
+          ? '' : 'Must be a valid time (HH:mm), e.g. 08:00';
+      case 'SIZE_MIN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 0
+          ? '' : 'Must be a positive number (bytes)';
+      case 'ROW_COUNT_MIN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 1
+          ? '' : 'Must be a number >= 1';
+      case 'COLUMN_NUMERIC':
+      case 'NO_EMPTY_COLUMN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 0
+          ? '' : 'Must be a column index >= 0';
+      case 'HEADER_MATCH':
+      case 'CONTAINS_STRING':
+        return value.trim().length > 0 ? '' : 'Value is required';
+      default:
+        return '';
+    }
+  }
+
+  hasRuleErrors(): boolean {
+    return this.editValidationRules.some(r =>
+      !!this.getRuleValueError(r.rule, r.value ?? '')
+    );
+  }
+
+  // ─── Comparison Type Helper ───────────────────────────
+  get editFilteredComparisonTypes(): ComparisonType[] {
+    const isSingleValueMode = !this.editHasSecondaryDb && !this.editHasQueryB;
+    return isSingleValueMode
+      ? ['NOT_ZERO', 'EQUALS_EXPECTED']
+      : ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
+  }
+
+  onEditModeChange(): void {
+    const valid = this.editFilteredComparisonTypes;
+    if (!valid.includes(this.editComparisonType)) {
+      this.editComparisonType = valid[0];
+    }
+  }
+
+  // ─── Badge / Display Helpers ──────────────────────────
   getCheckTypeBadgeClass(type: string): string {
     const map: Record<string, string> = {
       CLUSTER: 'badge badge-cluster',
@@ -464,46 +615,24 @@ export class CheckDetailComponent implements OnInit {
 
   getSeverityBadgeClass(severity: string): string {
     const map: Record<string, string> = {
-      LOW: 'badge badge-low', MEDIUM: 'badge badge-medium',
-      HIGH: 'badge badge-high', CRITICAL: 'badge badge-critical',
+      LOW: 'badge badge-low',
+      MEDIUM: 'badge badge-medium',
+      HIGH: 'badge badge-high',
+      CRITICAL: 'badge badge-critical',
     };
     return map[severity] ?? 'badge';
   }
 
   getStatusClass(status: string): string {
-    return status === 'ENABLED' ? 'status-badge status-enabled' : 'status-badge status-disabled';
+    return status === 'ENABLED'
+      ? 'status-badge status-enabled'
+      : 'status-badge status-disabled';
   }
 
-  goBack(): void {
-    this.router.navigate(['/apps', this.appId],
-      { queryParams: { tab: 'checks' } });
+  private showSuccess(title: string, message: string): void {
+    this.dialog.open(SuccessDialogComponent, {
+      position: { top: '80px' },
+      data: { title, message },
+    });
   }
-
-  getFileFormatError(): string {
-  if (!this.editFileNamePattern.trim()) return '';
-  const pattern = this.editFileNamePattern.trim().toLowerCase();
-  const format = this.editExpectedFormat.toLowerCase();
-
-  if (pattern.endsWith('.csv') && format !== 'csv')
-    return 'File pattern ends with .csv but format is set to ' + this.editExpectedFormat;
-  if (pattern.endsWith('.txt') && format !== 'txt')
-    return 'File pattern ends with .txt but format is set to ' + this.editExpectedFormat;
-
-  return '';
-}
-get editFilteredComparisonTypes(): ComparisonType[] {
-  const isSingleValueMode = !this.editHasSecondaryDb && !this.editHasQueryB;
-  if (isSingleValueMode) {
-    return ['NOT_ZERO', 'EQUALS_EXPECTED'];
-  } else {
-    return ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
-  }
-}
-
-onEditModeChange(): void {
-  const valid = this.editFilteredComparisonTypes;
-  if (!valid.includes(this.editComparisonType)) {
-    this.editComparisonType = valid[0];
-  }
-}
 }

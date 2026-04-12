@@ -43,27 +43,27 @@ export class LayoutComponent implements OnInit {
   currentRoute = signal('');
 
   readonly navItems: NavItem[] = [
-  { label: 'Global Dashboard', icon: 'dashboard', route: '/dashboard' },
-  { label: 'Applications', icon: 'monitor_heart', route: '/apps' },
-  { label: 'Users', icon: 'group', route: '/users', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
-  { label: 'App Access', icon: 'apps', route: '/app-access', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
-  { label: 'Profile', icon: 'person', route: '/profile' },
+    { label: 'Global Dashboard', icon: 'dashboard', route: '/dashboard' },
+    { label: 'Applications', icon: 'monitor_heart', route: '/apps' },
+    { label: 'Users', icon: 'group', route: '/users', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
+    { label: 'Profile', icon: 'person', route: '/profile' },
   ];
 
   visibleNavItems = computed(() => {
     const role = this.authService.currentUser()?.role;
-    return this.navItems.filter(item =>
-      !item.roles || (role && item.roles.includes(role))
-    );
+    return this.navItems.filter((item) => !item.roles || (role && item.roles.includes(role)));
   });
 
   currentUser = computed(() => this.authService.currentUser());
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
+      .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((e: any) => this.currentRoute.set(e.urlAfterRedirects));
 
     this.currentRoute.set(this.router.url);
@@ -80,6 +80,11 @@ export class LayoutComponent implements OnInit {
 
   getUserInitials(): string {
     const name = this.currentUser()?.name || '';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 }

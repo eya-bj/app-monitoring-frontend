@@ -1,4 +1,5 @@
 <div class="page">
+
   <!-- Breadcrumb -->
   <div class="breadcrumb">
     <span class="breadcrumb-link" (click)="goToApps()">Applications</span>
@@ -24,31 +25,23 @@
       <div class="header-actions">
         @if (!isEditing()) {
           <button class="btn-secondary" (click)="startEdit()">
-            <mat-icon>edit</mat-icon>
-            Edit
+            <mat-icon>edit</mat-icon> Edit
           </button>
-          <button
-            class="btn-toggle"
+          <button class="btn-toggle"
             [class.btn-disable]="check()!.status === 'ENABLED'"
             [class.btn-enable]="check()!.status === 'DISABLED'"
-            (click)="toggleCheck()"
-          >
-            <mat-icon>
-              {{ check()!.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}
-            </mat-icon>
+            (click)="toggleCheck()">
+            <mat-icon>{{ check()!.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}</mat-icon>
             {{ check()!.status === 'ENABLED' ? 'Disable' : 'Enable' }}
           </button>
           <button class="btn-danger" (click)="deleteCheck()">
-            <mat-icon>delete</mat-icon>
-            Delete
+            <mat-icon>delete</mat-icon> Delete
           </button>
         }
         @if (isEditing()) {
           <button class="btn-cancel-edit" (click)="cancelEdit()">Cancel</button>
           <button class="btn-save" [disabled]="isSaving()" (click)="saveEdit()">
-            @if (isSaving()) {
-              <mat-icon class="spin">refresh</mat-icon>
-            }
+            @if (isSaving()) { <mat-icon class="spin">refresh</mat-icon> }
             Save Changes
           </button>
         }
@@ -72,11 +65,14 @@
 
   @if (!isLoading() && check()) {
     <div class="two-col">
-      <!-- LEFT: Check Info / Edit Form -->
+
+      <!-- LEFT -->
       <div class="col-left">
-        <!-- VIEW MODE -->
+
+        <!-- ── VIEW MODE ── -->
         @if (!isEditing()) {
-          <!-- General Info -->
+
+          <!-- General -->
           <div class="card">
             <div class="card-header">
               <span class="card-title">General</span>
@@ -104,9 +100,7 @@
                 </div>
                 <div class="info-row">
                   <span class="info-label">Schedule</span>
-                  <div class="schedule-cell">
-                    <span class="info-value">{{ check()!.cronExpression | cronHuman }}</span>
-                  </div>
+                  <span class="info-value">{{ check()!.cronExpression | cronHuman }}</span>
                 </div>
                 <div class="info-row">
                   <span class="info-label">Threshold</span>
@@ -123,9 +117,7 @@
           <!-- Cluster Config -->
           @if (check()!.checkType === 'CLUSTER' && check()!.clusterConfig) {
             <div class="card">
-              <div class="card-header">
-                <span class="card-title">Cluster Configuration</span>
-              </div>
+              <div class="card-header"><span class="card-title">Cluster Configuration</span></div>
               <div class="card-body">
                 <div class="info-rows">
                   <div class="info-row">
@@ -151,19 +143,12 @@
                   <div class="info-row">
                     <span class="info-label">Auth</span>
                     <span class="info-value">
-                      {{
-                        check()!.clusterConfig!.authRequired
-                          ? check()!.clusterConfig!.authUsername
-                          : 'None'
-                      }}
+                      {{ check()!.clusterConfig!.authRequired ? check()!.clusterConfig!.authUsername : 'None' }}
                     </span>
                   </div>
                 </div>
-
                 <div class="nodes-list">
-                  <span class="nodes-title"
-                    >Nodes ({{ check()!.clusterConfig!.nodes.length }})</span
-                  >
+                  <span class="nodes-title">Nodes ({{ check()!.clusterConfig!.nodes.length }})</span>
                   @for (node of check()!.clusterConfig!.nodes; track node.id) {
                     <div class="node-item">
                       <mat-icon>dns</mat-icon>
@@ -182,9 +167,7 @@
           <!-- Data Config -->
           @if (check()!.checkType === 'DATA' && check()!.dataConfig) {
             <div class="card">
-              <div class="card-header">
-                <span class="card-title">Database Configuration</span>
-              </div>
+              <div class="card-header"><span class="card-title">Database Configuration</span></div>
               <div class="card-body">
                 <div class="db-section-label">Primary Database</div>
                 <div class="info-rows">
@@ -195,9 +178,7 @@
                   <div class="info-row">
                     <span class="info-label">Host</span>
                     <span class="info-value mono">
-                      {{ check()!.dataConfig!.primaryDbHost }}:{{
-                        check()!.dataConfig!.primaryDbPort
-                      }}
+                      {{ check()!.dataConfig!.primaryDbHost }}:{{ check()!.dataConfig!.primaryDbPort }}
                     </span>
                   </div>
                   <div class="info-row">
@@ -223,9 +204,7 @@
                     <div class="info-row">
                       <span class="info-label">Host</span>
                       <span class="info-value mono">
-                        {{ check()!.dataConfig!.secondaryDbHost }}:{{
-                          check()!.dataConfig!.secondaryDbPort
-                        }}
+                        {{ check()!.dataConfig!.secondaryDbHost }}:{{ check()!.dataConfig!.secondaryDbPort }}
                       </span>
                     </div>
                     <div class="info-row">
@@ -241,9 +220,7 @@
           <!-- File Config -->
           @if (check()!.checkType === 'FILE' && check()!.fileConfig) {
             <div class="card">
-              <div class="card-header">
-                <span class="card-title">File Configuration</span>
-              </div>
+              <div class="card-header"><span class="card-title">File Configuration</span></div>
               <div class="card-body">
                 <div class="info-rows">
                   <div class="info-row">
@@ -257,27 +234,22 @@
                     <span class="info-value">{{ check()!.fileConfig!.sftpUsername }}</span>
                   </div>
                   <div class="info-row">
+                    <span class="info-label">Auth Method</span>
+                    <span class="info-value">{{ check()!.fileConfig!.sftpAuthMethod }}</span>
+                  </div>
+                  <div class="info-row">
                     <span class="info-label">Folder</span>
                     <span class="info-value mono">{{ check()!.fileConfig!.folderPath }}</span>
                   </div>
-                  <div class="form-field">
-                    <label class="form-label">File Name Pattern</label>
-                    <input
-                      class="form-input"
-                      [class.input-error]="editFileNamePattern && getFileFormatError()"
-                      type="text"
-                      [(ngModel)]="editFileNamePattern"
-                    />
-                    @if (editFileNamePattern && getFileFormatError()) {
-                      <span class="field-error">{{ getFileFormatError() }}</span>
-                    }
+                  <div class="info-row">
+                    <span class="info-label">File Name Pattern</span>
+                    <span class="info-value">{{ check()!.fileConfig!.fileNamePattern }}</span>
                   </div>
                   <div class="info-row">
                     <span class="info-label">Format</span>
                     <span class="info-value">{{ check()!.fileConfig!.expectedFormat }}</span>
                   </div>
                 </div>
-
                 <div class="rules-list">
                   <span class="nodes-title">
                     Validation Rules ({{ check()!.fileConfig!.validationRules.length }})
@@ -297,8 +269,9 @@
           }
         }
 
-        <!-- EDIT MODE -->
+        <!-- ── EDIT MODE ── -->
         @if (isEditing()) {
+
           @if (errorMessage()) {
             <div class="error-banner">
               <mat-icon>error_outline</mat-icon>
@@ -331,12 +304,8 @@
               <div class="form-row">
                 <div class="form-field">
                   <label class="form-label">Consecutive Threshold</label>
-                  <input
-                    class="form-input"
-                    type="number"
-                    min="1"
-                    [(ngModel)]="editConsecutiveThreshold"
-                  />
+                  <input class="form-input" type="number" min="1"
+                    [(ngModel)]="editConsecutiveThreshold" />
                 </div>
                 <div class="form-field">
                   <label class="form-label">Description</label>
@@ -367,11 +336,21 @@
                 <div class="form-row">
                   <div class="form-field">
                     <label class="form-label">Expected Status Code</label>
-                    <input class="form-input" type="number" [(ngModel)]="editExpectedStatusCode" />
+                    <input class="form-input" type="number"
+                      [class.input-error]="getEditStatusCodeError()"
+                      [(ngModel)]="editExpectedStatusCode" />
+                    @if (getEditStatusCodeError()) {
+                      <span class="field-error">{{ getEditStatusCodeError() }}</span>
+                    }
                   </div>
                   <div class="form-field">
                     <label class="form-label">Timeout (s)</label>
-                    <input class="form-input" type="number" [(ngModel)]="editTimeoutSeconds" />
+                    <input class="form-input" type="number"
+                      [class.input-error]="getEditTimeoutError()"
+                      [(ngModel)]="editTimeoutSeconds" />
+                    @if (getEditTimeoutError()) {
+                      <span class="field-error">{{ getEditTimeoutError() }}</span>
+                    }
                   </div>
                 </div>
                 <div class="form-row">
@@ -398,12 +377,9 @@
                     </div>
                     <div class="form-field">
                       <label class="form-label">New Password</label>
-                      <input
-                        class="form-input"
-                        type="password"
+                      <input class="form-input" type="password"
                         placeholder="Leave blank to keep current"
-                        [(ngModel)]="editAuthPassword"
-                      />
+                        [(ngModel)]="editAuthPassword" />
                     </div>
                   </div>
                 }
@@ -421,21 +397,25 @@
                 @for (node of editNodes; track $index) {
                   <div class="node-row">
                     <div class="form-field flex-2">
-                      <label class="form-label">IP Address / Hostname </label>
+                      <label class="form-label">IP Address / Hostname <span class="required">*</span></label>
                       <input class="form-input" type="text" [(ngModel)]="node.ipAddress" />
                     </div>
                     <div class="form-field">
-                      <label class="form-label">Port</label>
-                      <input class="form-input" type="number" [(ngModel)]="node.port" />
+                      <label class="form-label">Port <span class="required">*</span></label>
+                      <input class="form-input" type="number"
+                        [class.input-error]="getNodePortError(node.port)"
+                        [(ngModel)]="node.port" />
+                      @if (getNodePortError(node.port)) {
+                        <span class="field-error">{{ getNodePortError(node.port) }}</span>
+                      }
                     </div>
                     <div class="form-field flex-2">
-                      <label class="form-label">Label</label>
+                      <label class="form-label">Label <span class="required">*</span></label>
                       <input class="form-input" type="text" [(ngModel)]="node.label" />
                     </div>
                     <div class="form-field checkbox-field node-active-toggle">
                       <label class="checkbox-label">
-                        <input type="checkbox" [(ngModel)]="node.isActive" />
-                        Active
+                        <input type="checkbox" [(ngModel)]="node.isActive" /> Active
                       </label>
                     </div>
                     <button class="icon-btn danger"
@@ -485,17 +465,19 @@
                   </div>
                   <div class="form-field">
                     <label class="form-label">New Password</label>
-                    <input
-                      class="form-input"
-                      type="password"
+                    <input class="form-input" type="password"
                       placeholder="Leave blank to keep current"
-                      [(ngModel)]="editPrimaryDbPassword"
-                    />
+                      [(ngModel)]="editPrimaryDbPassword" />
                   </div>
                 </div>
                 <div class="form-field">
                   <label class="form-label">Query A</label>
-                  <textarea class="form-textarea" rows="3" [(ngModel)]="editQueryA"></textarea>
+                  <textarea class="form-textarea" rows="3"
+                    [class.input-error]="editQueryA && getQueryError(editQueryA, 'Query A')"
+                    [(ngModel)]="editQueryA"></textarea>
+                  @if (editQueryA && getQueryError(editQueryA, 'Query A')) {
+                    <span class="field-error">{{ getQueryError(editQueryA, 'Query A') }}</span>
+                  }
                 </div>
                 <div class="form-row">
                   <div class="form-field">
@@ -524,17 +506,19 @@
                     (ngModelChange)="onEditModeChange()" />
                   Add Second Query (Query B)
                 </label>
-
                 @if (editHasQueryB && !editHasSecondaryDb) {
                   <div class="form-field">
                     <label class="form-label">Query B <span class="required">*</span></label>
                     <textarea class="form-textarea" rows="3"
+                      [class.input-error]="editQueryB && getQueryError(editQueryB, 'Query B')"
                       placeholder="SELECT COUNT(*) FROM invoices"
                       [(ngModel)]="editQueryB"></textarea>
+                    @if (editQueryB && getQueryError(editQueryB, 'Query B')) {
+                      <span class="field-error">{{ getQueryError(editQueryB, 'Query B') }}</span>
+                    }
                     <span class="form-hint">Both queries will run on the primary database</span>
                   </div>
                 }
-
                 <label class="checkbox-label">
                   <input type="checkbox" [(ngModel)]="editHasSecondaryDb"
                     (ngModelChange)="onEditModeChange()" />
@@ -578,19 +562,22 @@
                     </div>
                     <div class="form-field">
                       <label class="form-label">New Password</label>
-                      <input
-                        class="form-input"
-                        type="password"
+                      <input class="form-input" type="password"
                         placeholder="Leave blank to keep current"
-                        [(ngModel)]="editSecondaryDbPassword"
-                      />
+                        [(ngModel)]="editSecondaryDbPassword" />
                     </div>
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Query B <span class="form-hint">(optional — leave empty to use Query A on both databases)</span></label>
+                    <label class="form-label">Query B
+                      <span class="form-hint">(optional — leave empty to use Query A on both databases)</span>
+                    </label>
                     <textarea class="form-textarea" rows="3"
+                      [class.input-error]="editQueryB && getQueryError(editQueryB, 'Query B')"
                       placeholder="Leave empty to use Query A on both databases"
                       [(ngModel)]="editQueryB"></textarea>
+                    @if (editQueryB && getQueryError(editQueryB, 'Query B')) {
+                      <span class="field-error">{{ getQueryError(editQueryB, 'Query B') }}</span>
+                    }
                   </div>
                 </div>
               </div>
@@ -612,29 +599,60 @@
                     <input class="form-input" type="number" [(ngModel)]="editSftpPort" />
                   </div>
                 </div>
-                <div class="form-row">
-                  <div class="form-field">
-                    <label class="form-label">Username</label>
-                    <input class="form-input" type="text" [(ngModel)]="editSftpUsername" />
-                  </div>
+                <div class="form-field">
+                  <label class="form-label">Username</label>
+                  <input class="form-input" type="text" [(ngModel)]="editSftpUsername" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Authentication Method</label>
+                  <select class="form-select" [(ngModel)]="editSftpAuthMethod">
+                    @for (method of authMethodOptions; track method) {
+                      <option [value]="method">
+                        {{ method === 'PASSWORD' ? 'Password' : 'SSH Key' }}
+                      </option>
+                    }
+                  </select>
+                </div>
+                @if (editSftpAuthMethod === 'PASSWORD') {
                   <div class="form-field">
                     <label class="form-label">New Password</label>
-                    <input
-                      class="form-input"
-                      type="password"
+                    <input class="form-input" type="password"
                       placeholder="Leave blank to keep current"
-                      [(ngModel)]="editSftpPassword"
-                    />
+                      [(ngModel)]="editSftpPassword" />
                   </div>
-                </div>
+                }
+                @if (editSftpAuthMethod === 'SSH_KEY') {
+                  <div class="form-field">
+                    <label class="form-label">SSH Private Key</label>
+                    <textarea class="form-textarea" rows="6"
+                      placeholder="Leave blank to keep current | Paste your complete SSH private key in OpenSSH format"
+                      [(ngModel)]="editSftpPrivateKey"></textarea>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><span class="card-title">File Settings</span></div>
+              <div class="card-body">
                 <div class="form-row">
                   <div class="form-field">
                     <label class="form-label">Folder Path</label>
-                    <input class="form-input" type="text" [(ngModel)]="editFolderPath" />
+                    <input class="form-input" type="text"
+                      [class.input-error]="editFolderPath && getFolderPathError()"
+                      [(ngModel)]="editFolderPath" />
+                    @if (editFolderPath && getFolderPathError()) {
+                      <span class="field-error">{{ getFolderPathError() }}</span>
+                    }
                   </div>
                   <div class="form-field">
                     <label class="form-label">File Name Pattern</label>
-                    <input class="form-input" type="text" [(ngModel)]="editFileNamePattern" />
+                    <input class="form-input" type="text"
+                      [class.input-error]="editFileNamePattern && getFileFormatError()"
+                      [(ngModel)]="editFileNamePattern" />
+                    @if (editFileNamePattern && getFileFormatError()) {
+                      <span class="field-error">{{ getFileFormatError() }}</span>
+                    }
                   </div>
                 </div>
                 <div class="form-field">
@@ -668,15 +686,18 @@
                     </div>
                     @if (ruleRequiresValue(rule.rule)) {
                       <div class="form-field flex-2">
-                        <label class="form-label">Value</label>
-                        <input class="form-input" type="text" [(ngModel)]="rule.value" />
+                        <label class="form-label">Value <span class="required">*</span></label>
+                        <input class="form-input" type="text"
+                          [class.input-error]="rule.value !== undefined && getRuleValueError(rule.rule, rule.value)"
+                          [(ngModel)]="rule.value" />
+                        @if (rule.value !== undefined && getRuleValueError(rule.rule, rule.value)) {
+                          <span class="field-error">{{ getRuleValueError(rule.rule, rule.value) }}</span>
+                        }
                       </div>
                     }
-                    <button
-                      class="icon-btn danger"
+                    <button class="icon-btn danger"
                       [disabled]="editValidationRules.length === 1"
-                      (click)="removeRule($index)"
-                    >
+                      (click)="removeRule($index)">
                       <mat-icon>remove_circle_outline</mat-icon>
                     </button>
                   </div>
@@ -687,23 +708,61 @@
         }
       </div>
 
-      <!-- RIGHT: Results Placeholder -->
-      <div class="col-right">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Execution History</span>
-          </div>
-          <div class="card-body">
+      <!-- RIGHT -->
+    <div class="col-right">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Executions</span>
+          <span class="card-subtitle">Last 5 results</span>
+        </div>
+        <div class="card-body">
+
+          @if (resultsLoading()) {
+            <div class="state-container">
+              <mat-icon class="spin">refresh</mat-icon>
+            </div>
+          }
+
+          @if (!resultsLoading() && recentResults().length === 0) {
             <div class="placeholder-results">
               <mat-icon>history</mat-icon>
               <span class="placeholder-title">No results yet</span>
               <span class="placeholder-desc">
-                Execution results will appear here once the scheduler runs this check.
+                Results will appear here once the scheduler runs this check.
               </span>
             </div>
-          </div>
+          }
+
+          @if (!resultsLoading() && recentResults().length > 0) {
+            <div class="recent-results-list">
+              @for (result of recentResults(); track result.id) {
+                <div class="recent-result-item">
+                  <div class="recent-result-top">
+                    <span [class]="getResultStatusClass(result.status)">
+                      {{ result.status }}
+                    </span>
+                    <span class="recent-result-time">
+                      {{ result.executedAt | date: 'MMM d, HH:mm:ss' }}
+                    </span>
+                    <span class="recent-result-duration">
+                      {{ formatDuration(result.durationMs) }}
+                    </span>
+                  </div>
+                  @if (result.status === 'FAILED' && result.errorMessage) {
+                    <div class="recent-result-error">
+                      {{ result.errorMessage }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
         </div>
       </div>
     </div>
+
+    </div>
   }
+
 </div>

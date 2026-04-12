@@ -21,6 +21,8 @@ export type ValidationRule =
   | 'COLUMN_NUMERIC'
   | 'NO_EMPTY_COLUMN';
 
+export type SftpAuthMethod = 'PASSWORD' | 'SSH_KEY' ;
+
 // ─── Response Models ──────────────────────────────────
 
 export interface ClusterNodeResponse {
@@ -65,13 +67,16 @@ export interface FileCheckRuleResponse {
   id: number;
   rule: ValidationRule;
   ruleOrder: number;
-  value?: string;
+  value?: string ;
 }
 
 export interface FileCheckConfig {
   sftpHost: string;
   sftpPort: number;
   sftpUsername: string;
+  sftpAuthMethod: SftpAuthMethod;
+  sftpPassword?: string;
+  sftpPrivateKey?: string;
   folderPath: string;
   fileNamePattern: string;
   expectedFormat: FileFormat;
@@ -161,7 +166,9 @@ export interface CreateFileCheckRequest {
   sftpHost: string;
   sftpPort: number;
   sftpUsername: string;
-  sftpPassword: string;
+  sftpAuthMethod: SftpAuthMethod;
+  sftpPassword?: string;
+  sftpPrivateKey?: string;
   folderPath: string;
   fileNamePattern: string;
   expectedFormat: FileFormat;
@@ -218,8 +225,10 @@ export interface UpdateFileCheckRequest {
   consecutiveThreshold?: number;
   sftpHost?: string;
   sftpPort?: number;
+  sftpAuthMethod?: SftpAuthMethod;
   sftpUsername?: string;
   sftpPassword?: string;
+  sftpPrivateKey?: string;
   folderPath?: string;
   fileNamePattern?: string;
   expectedFormat?: FileFormat;

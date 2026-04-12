@@ -1,5 +1,4 @@
 <div class="page">
-
   <!-- Breadcrumb -->
   <div class="breadcrumb">
     <span class="breadcrumb-link" (click)="goBack()">Applications</span>
@@ -48,36 +47,32 @@
   }
 
   @if (!isLoading() && app()) {
-
     <!-- Tabs -->
     <div class="tabs">
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'info'"
-        (click)="setTab('info')">
+      <button class="tab-btn" [class.active]="activeTab() === 'info'" (click)="setTab('info')">
         <mat-icon>info</mat-icon>
         Info
       </button>
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'checks'"
-        (click)="setTab('checks')">
+      <button class="tab-btn" [class.active]="activeTab() === 'checks'" (click)="setTab('checks')">
         <mat-icon>monitor_heart</mat-icon>
         Checks
         @if (app()!.totalChecks > 0) {
           <span class="tab-badge">{{ app()!.totalChecks }}</span>
         }
       </button>
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'users'"
-        (click)="setTab('users')">
-        <mat-icon>group</mat-icon>
-        Users
-        @if (appUsers().length > 0) {
-          <span class="tab-badge">{{ appUsers().length }}</span>
-        }
+      <button class="tab-btn" [class.active]="activeTab() === 'logs'" (click)="setTab('logs')">
+        <mat-icon>history</mat-icon>
+        Logs
       </button>
+      @if (isAdmin()) {
+        <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+          <mat-icon>group</mat-icon>
+          Users
+          @if (appUsers().length > 0) {
+            <span class="tab-badge">{{ appUsers().length }}</span>
+          }
+        </button>
+      }
     </div>
 
     <!-- Tab: Info -->
@@ -132,131 +127,145 @@
     }
 
     <!-- Tab: Checks -->
-@if (activeTab() === 'checks') {
-  <div class="tab-content-header">
-    <div class="checks-filters">
-      <select
-        class="filter-select"
-        [(ngModel)]="selectedCheckType"
-        (ngModelChange)="loadChecks()">
-        <option value="">All Types</option>
-        <option value="CLUSTER">Cluster</option>
-        <option value="DATA">Data</option>
-        <option value="FILE">File</option>
-      </select>
-      <select
-        class="filter-select"
-        [(ngModel)]="selectedCheckStatus"
-        (ngModelChange)="loadChecks()">
-        <option value="">All Statuses</option>
-        <option value="ENABLED">Enabled</option>
-        <option value="DISABLED">Disabled</option>
-      </select>
-    </div>
-    @if (isAdmin()) {
-      <button class="btn-primary" (click)="openAddCheckDialog()">
-        <mat-icon>add</mat-icon>
-        Add Check
-      </button>
-    }
-  </div>
-
-  <div class="table-card">
-
-    @if (checksLoading()) {
-      <div class="state-container">
-        <mat-icon class="spin">refresh</mat-icon>
-        <span>Loading checks...</span>
+    @if (activeTab() === 'checks') {
+      <div class="tab-content-header">
+        <div class="checks-filters">
+          <select
+            class="filter-select"
+            [(ngModel)]="selectedCheckType"
+            (ngModelChange)="loadChecks()"
+          >
+            <option value="">All Types</option>
+            <option value="CLUSTER">Cluster</option>
+            <option value="DATA">Data</option>
+            <option value="FILE">File</option>
+          </select>
+          <select
+            class="filter-select"
+            [(ngModel)]="selectedCheckStatus"
+            (ngModelChange)="loadChecks()"
+          >
+            <option value="">All Statuses</option>
+            <option value="ENABLED">Enabled</option>
+            <option value="DISABLED">Disabled</option>
+          </select>
+        </div>
+        @if (isAdmin()) {
+          <button class="btn-primary" (click)="openAddCheckDialog()">
+            <mat-icon>add</mat-icon>
+            Add Check
+          </button>
+        }
       </div>
-    }
 
-    @if (!checksLoading() && checks().length === 0) {
-      <div class="state-container">
-        <mat-icon>monitor_heart</mat-icon>
-        <span>No checks yet. Click "Add Check" to get started.</span>
-      </div>
-    }
+      <div class="table-card">
+        @if (checksLoading()) {
+          <div class="state-container">
+            <mat-icon class="spin">refresh</mat-icon>
+            <span>Loading checks...</span>
+          </div>
+        }
 
-    @if (!checksLoading() && checks().length > 0) {
-      <table class="checks-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Severity</th>
-            <th>Schedule</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (check of checks(); track check.id) {
-            <tr class="table-row">
-              <!-- Name -->
-              <td>
-                <div class="check-cell">
-                  <span class="check-name">{{ check.name }}</span>
-                  @if (check.description) {
-                    <span class="check-desc">{{ check.description }}</span>
-                  }
-                </div>
-              </td>
-              <!-- Type -->
-              <td>
-                <span [class]="getCheckTypeBadgeClass(check.checkType)">
-                  {{ getCheckTypeLabel(check.checkType) }}
-                </span>
-              </td>
-              <!-- Severity -->
-              <td>
-                <span [class]="getSeverityBadgeClass(check.severity)">
-                  {{ check.severity }}
-                </span>
-              </td>
-              <!-- Schedule -->
-              <td class="text-muted">{{ check.cronExpression | cronHuman }}</td>
-              <!-- Status -->
-              <td>
-                <span class="status-badge"
-                  [class.status-enabled]="check.status === 'ENABLED'"
-                  [class.status-disabled]="check.status === 'DISABLED'">
-                  {{ check.status }}
-                </span>
-              </td>
-              <!-- Actions -->
-                <td>
-                  <div class="actions">
-                    <button class="icon-btn" matTooltip="View Details"
-                      (click)="viewCheck(check.id)">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    <button
-                      class="icon-btn"
-                      [matTooltip]="check.status === 'ENABLED' ? 'Disable' : 'Enable'"
-                      (click)="toggleCheck(check)">
-                      <mat-icon>
-                        {{ check.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}
-                      </mat-icon>
-                    </button>
-                    @if (isAdmin()) {
-                      <button class="icon-btn danger" matTooltip="Delete"
-                        (click)="deleteCheck(check)">
-                        <mat-icon>delete</mat-icon>
+        @if (!checksLoading() && checks().length === 0) {
+          <div class="state-container">
+            <mat-icon>monitor_heart</mat-icon>
+            <span>No checks yet. Click "Add Check" to get started.</span>
+          </div>
+        }
+
+        @if (!checksLoading() && checks().length > 0) {
+          <table class="checks-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Severity</th>
+                <th>Schedule</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (check of checks(); track check.id) {
+                <tr class="table-row">
+                  <!-- Name -->
+                  <td>
+                    <div class="check-cell">
+                      <span class="check-name">{{ check.name }}</span>
+                      @if (check.description) {
+                        <span class="check-desc">{{ check.description }}</span>
+                      }
+                    </div>
+                  </td>
+                  <!-- Type -->
+                  <td>
+                    <span [class]="getCheckTypeBadgeClass(check.checkType)">
+                      {{ getCheckTypeLabel(check.checkType) }}
+                    </span>
+                  </td>
+                  <!-- Severity -->
+                  <td>
+                    <span [class]="getSeverityBadgeClass(check.severity)">
+                      {{ check.severity }}
+                    </span>
+                  </td>
+                  <!-- Schedule -->
+                  <td class="text-muted">{{ check.cronExpression | cronHuman }}</td>
+                  <!-- Status -->
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.status-enabled]="check.status === 'ENABLED'"
+                      [class.status-disabled]="check.status === 'DISABLED'"
+                    >
+                      {{ check.status }}
+                    </span>
+                  </td>
+                  <!-- Actions -->
+                  <td>
+                    <div class="actions">
+                      <button
+                        class="icon-btn"
+                        matTooltip="View Details"
+                        (click)="viewCheck(check.id)"
+                      >
+                        <mat-icon>visibility</mat-icon>
                       </button>
-                    }
-                  </div>
-                </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+                      @if (isAdmin()) {
+                        <button
+                          class="icon-btn"
+                          [matTooltip]="check.status === 'ENABLED' ? 'Disable' : 'Enable'"
+                          (click)="toggleCheck(check)"
+                        >
+                          <mat-icon>
+                            {{ check.status === 'ENABLED' ? 'pause_circle' : 'play_circle' }}
+                          </mat-icon>
+                        </button>
+                        <button
+                          class="icon-btn danger"
+                          matTooltip="Delete"
+                          (click)="deleteCheck(check)"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
     }
 
-  </div>
-}
+    <!-- Tab: Logs -->
+    @if (activeTab() === 'logs') {
+      <app-logs [appId]="app()!.id"></app-logs>
+    }
 
     <!-- Tab: Users -->
-    @if (activeTab() === 'users') {
+    @if (isAdmin() && activeTab() === 'users') {
       <div class="card">
         <div class="card-header">
           <span class="card-title">Users with Access</span>
@@ -268,7 +277,6 @@
           }
         </div>
         <div class="card-body no-pad">
-
           @if (appUsers().length === 0) {
             <div class="empty-apps">
               <mat-icon>person_off</mat-icon>
@@ -289,20 +297,18 @@
                 {{ getRoleLabel(user.role) }}
               </span>
               @if (isAdmin()) {
-                <button class="icon-btn danger" matTooltip="Revoke"
-                  (click)="revokeUser(user.id)">
+                <button class="icon-btn danger" matTooltip="Revoke" (click)="revokeUser(user.id)">
                   <mat-icon>remove_circle_outline</mat-icon>
                 </button>
               }
             </div>
           }
-
         </div>
       </div>
     }
 
-  }
 
+  }
 </div>
 
 <!-- Assign User Modal -->

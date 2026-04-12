@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,13 +6,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { AppService } from '../../../core/services/app';
+import { AuthService } from '../../../core/services/auth';
 import { AppResponse } from '../../../core/models/app';
 import { AddAppDialogComponent } from '../add-app-dialog/add-app-dialog';
 import { EditAppDialogComponent } from '../edit-app-dialog/edit-app-dialog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../../shared/components/success-dialog/success-dialog';
-
-
 
 @Component({
   selector: 'app-list',
@@ -28,6 +27,11 @@ export class AppListComponent implements OnInit {
   searchQuery = '';
   selectedEnvironment = '';
 
+  currentUser = computed(() => this.authService.currentUser());
+  isAdmin = computed(
+    () => this.currentUser()?.role === 'ADMIN' || this.currentUser()?.role === 'SYSTEM_ADMIN',
+  );
+
   environmentOptions = [
     { value: '', label: 'All Environments' },
     { value: 'PRODUCTION', label: 'Production' },
@@ -37,16 +41,17 @@ export class AppListComponent implements OnInit {
 
   constructor(
     private appService: AppService,
+    private authService: AuthService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   private showSuccess(title: string, message: string): void {
-  this.dialog.open(SuccessDialogComponent, {
-    position: { top: '80px' },
-    data: { title, message },
-  });
-}
+    this.dialog.open(SuccessDialogComponent, {
+      position: { top: '80px' },
+      data: { title, message },
+    });
+  }
 
   ngOnInit(): void {
     this.loadApps();
@@ -56,10 +61,7 @@ export class AppListComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
     this.appService
-      .getAllApps(
-        this.searchQuery || undefined,
-        this.selectedEnvironment || undefined
-      )
+      .getAllApps(this.searchQuery || undefined, this.selectedEnvironment || undefined)
       .subscribe({
         next: (data) => {
           this.apps.set(data);
@@ -85,53 +87,52 @@ export class AppListComponent implements OnInit {
   }
 
   openCreateDialog(): void {
-  const ref = this.dialog.open(AddAppDialogComponent, {
-    width: '480px',
-  });
-  ref.afterClosed().subscribe((result) => {
-    if (result) {
-      this.loadApps();
-      this.showSuccess('App Created', 'Application has been created successfully.');
-    }
-  });
-}
+    const ref = this.dialog.open(AddAppDialogComponent, {
+      width: '480px',
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadApps();
+        this.showSuccess('App Created', 'Application has been created successfully.');
+      }
+    });
+  }
 
-openEditDialog(app: AppResponse): void {
-  const ref = this.dialog.open(EditAppDialogComponent, {
-    width: '480px',
-    data: { app },
-  });
-  ref.afterClosed().subscribe((result) => {
-    if (result) {
-      this.loadApps();
-      this.showSuccess('App Updated', `"${app.name}" has been updated successfully.`);
-    }
-  });
-}
-
+  openEditDialog(app: AppResponse): void {
+    const ref = this.dialog.open(EditAppDialogComponent, {
+      width: '480px',
+      data: { app },
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadApps();
+        this.showSuccess('App Updated', `"${app.name}" has been updated successfully.`);
+      }
+    });
+  }
 
   deleteApp(app: AppResponse): void {
-  const ref = this.dialog.open(ConfirmDialogComponent, {
-    width: '400px',
-    data: {
-      title: 'Delete App',
-      message: `Are you sure you want to delete "${app.name}"? This will also delete all its checks.`,
-      confirmLabel: 'Delete',
-      danger: true,
-    },
-  });
-  ref.afterClosed().subscribe((confirmed) => {
-    if (confirmed) {
-      this.appService.deleteApp(app.id).subscribe({
-        next: () => {
-          this.loadApps();
-          this.showSuccess('App Deleted', `"${app.name}" has been deleted successfully.`);
-        },
-        error: () => this.errorMessage.set('Failed to delete app.'),
-      });
-    }
-  });
-}
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete App',
+        message: `Are you sure you want to delete "${app.name}"? This will also delete all its checks.`,
+        confirmLabel: 'Delete',
+        danger: true,
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.appService.deleteApp(app.id).subscribe({
+          next: () => {
+            this.loadApps();
+            this.showSuccess('App Deleted', `"${app.name}" has been deleted successfully.`);
+          },
+          error: () => this.errorMessage.set('Failed to delete app.'),
+        });
+      }
+    });
+  }
 
   getEnvironmentBadgeClass(env: string): string {
     const map: Record<string, string> = {

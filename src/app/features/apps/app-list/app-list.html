@@ -1,15 +1,16 @@
 <div class="page">
-
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-left">
       <h1 class="page-title">Applications</h1>
       <p class="page-subtitle">Manage and monitor your applications</p>
     </div>
-    <button class="btn-primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Add App
-    </button>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Add App
+      </button>
+    }
   </div>
 
   <!-- Toolbar -->
@@ -21,12 +22,14 @@
         type="text"
         placeholder="Search applications..."
         [(ngModel)]="searchQuery"
-        (ngModelChange)="onSearch()" />
+        (ngModelChange)="onSearch()"
+      />
     </div>
     <select
       class="role-filter"
       [(ngModel)]="selectedEnvironment"
-      (ngModelChange)="onEnvironmentChange()">
+      (ngModelChange)="onEnvironmentChange()"
+    >
       @for (option of environmentOptions; track option.value) {
         <option [value]="option.value">{{ option.label }}</option>
       }
@@ -35,7 +38,6 @@
 
   <!-- Table Card -->
   <div class="table-card">
-
     @if (isLoading()) {
       <div class="state-container">
         <mat-icon class="spin">refresh</mat-icon>
@@ -111,12 +113,14 @@
                   <button class="icon-btn" matTooltip="View Details" (click)="viewApp(app.id)">
                     <mat-icon>visibility</mat-icon>
                   </button>
-                  <button class="icon-btn" matTooltip="Edit" (click)="openEditDialog(app)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button class="icon-btn danger" matTooltip="Delete" (click)="deleteApp(app)">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  @if (isAdmin()) {
+                    <button class="icon-btn" matTooltip="Edit" (click)="openEditDialog(app)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button class="icon-btn danger" matTooltip="Delete" (click)="deleteApp(app)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -124,6 +128,5 @@
         </tbody>
       </table>
     }
-
   </div>
 </div>

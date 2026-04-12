@@ -15,11 +15,11 @@ import { UserResponse } from '../../../core/models/user';
 import { UserService } from '../../../core/services/user';
 import { CheckResponse, CheckType, CheckStatus } from '../../../core/models/check';
 import { CheckService } from '../../../core/services/check';
+import { AppLogsComponent } from '../app-logs/app-logs';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../../shared/components/success-dialog/success-dialog';
 import { EditAppDialogComponent } from '../edit-app-dialog/edit-app-dialog';
 import { CronHumanPipe } from '../../../shared/pipes/cron-human-pipe';
-
 
 @Component({
   selector: 'app-detail',
@@ -35,6 +35,7 @@ import { CronHumanPipe } from '../../../shared/pipes/cron-human-pipe';
     MatSnackBarModule,
     MatDialogModule,
     CronHumanPipe,
+    AppLogsComponent,
   ],
   templateUrl: './app-detail.html',
   styleUrl: './app-detail.scss',
@@ -46,7 +47,7 @@ export class AppDetailComponent implements OnInit {
   isLoading = signal(true);
   errorMessage = signal('');
 
-  activeTab = signal<'info' | 'checks' | 'users'>('info');
+  activeTab = signal<'info' | 'checks' | 'users' | 'logs'>('info');
 
   showAssignModal = signal(false);
   selectedUserId = signal<number | null>(null);
@@ -57,16 +58,13 @@ export class AppDetailComponent implements OnInit {
   selectedCheckStatus = signal<CheckStatus | ''>('');
 
   currentUser = computed(() => this.authService.currentUser());
-  isAdmin = computed(() =>
-    this.currentUser()?.role === 'ADMIN' ||
-    this.currentUser()?.role === 'SYSTEM_ADMIN'
+  isAdmin = computed(
+    () => this.currentUser()?.role === 'ADMIN' || this.currentUser()?.role === 'SYSTEM_ADMIN',
   );
 
   availableUsers = computed(() => {
-    const assignedIds = this.appUsers().map(u => u.id);
-    return this.allUsers().filter(u =>
-      !assignedIds.includes(u.id) && u.role === 'USER'
-    );
+    const assignedIds = this.appUsers().map((u) => u.id);
+    return this.allUsers().filter((u) => !assignedIds.includes(u.id) && u.role === 'USER');
   });
 
   private appId!: number;
@@ -83,51 +81,62 @@ export class AppDetailComponent implements OnInit {
     private dialog: MatDialog,
   ) {}
 
-ngOnInit(): void {
-  this.appId = Number(this.route.snapshot.paramMap.get('id'));
-  this.loadAll();
+  ngOnInit(): void {
+    this.appId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadAll();
 
-  const tab = this.route.snapshot.queryParams['tab'];
-  const action = this.route.snapshot.queryParams['action'];
+    const tab = this.route.snapshot.queryParams['tab'];
+    const action = this.route.snapshot.queryParams['action'];
 
-  if (tab === 'checks') {
-    this.activeTab.set('checks');
-    this.loadChecks();
+    if (tab === 'checks') {
+      this.activeTab.set('checks');
+      this.loadChecks();
+    }
+
+    if (tab === 'logs') {
+  this.activeTab.set('logs');
   }
 
-  if (action === 'created') {
-    this.showSuccess('Check Created', 'Check has been created successfully.');
-  }
-  if (action === 'deleted') {
-    this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
-  }
-}
+    if (tab === 'users' && this.isAdmin()) {
+      this.activeTab.set('users');
+    }
 
-
+    if (action === 'created') {
+      this.showSuccess('Check Created', 'Check has been created successfully.');
+    }
+    if (action === 'deleted') {
+      this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
+    }
+  }
 
   // ─── Tab ──────────────────────────────────────────────
 
-  setTab(tab: 'info' | 'checks' | 'users'): void {
+setTab(tab: 'info' | 'checks' | 'users' | 'logs'): void {
+  if (tab === 'users' && !this.isAdmin()) {
+      return;
+    }
     this.activeTab.set(tab);
     if (tab === 'checks') this.loadChecks();
   }
 
   loadChecks(): void {
-  this.checksLoading.set(true);
-  this.checkService.getChecksByApp(
-    this.appId,
-    this.selectedCheckType() || undefined,
-    this.selectedCheckStatus() || undefined
-  ).subscribe({
-    next: (checks) => {
-      this.checks.set(checks);
-      this.checksLoading.set(false);
-    },
-    error: () => {
-      this.checksLoading.set(false);
-    },
-  });
-}
+    this.checksLoading.set(true);
+    this.checkService
+      .getChecksByApp(
+        this.appId,
+        this.selectedCheckType() || undefined,
+        this.selectedCheckStatus() || undefined,
+      )
+      .subscribe({
+        next: (checks) => {
+          this.checks.set(checks);
+          this.checksLoading.set(false);
+        },
+        error: () => {
+          this.checksLoading.set(false);
+        },
+      });
+  }
 
   // ─── Load ─────────────────────────────────────────────
 
@@ -196,10 +205,9 @@ ngOnInit(): void {
           this.router.navigate(['/apps']);
         },
         error: (err: any) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete application.',
-            'Close', { duration: 3000 }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to delete application.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
@@ -207,9 +215,9 @@ ngOnInit(): void {
 
   // ─── Check Actions ────────────────────────────────────
 
-openAddCheckDialog(): void {
-  this.router.navigate(['/apps', this.appId, 'checks', 'add']);
-}
+  openAddCheckDialog(): void {
+    this.router.navigate(['/apps', this.appId, 'checks', 'add']);
+  }
 
   // ─── User Access Actions ──────────────────────────────
 
@@ -225,26 +233,27 @@ openAddCheckDialog(): void {
   assignUser(): void {
     const userId = this.selectedUserId();
     if (!userId) return;
-    this.appAccessService.assignUserToApp({
-      userId,
-      appId: this.appId,
-    }).subscribe({
-      next: () => {
-        this.showSuccess('User Assigned', 'User has been assigned successfully.');
-        this.closeAssignModal();
-        this.loadAll();
-      },
-      error: (err: any) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to assign user.',
-          'Close', { duration: 3000 }
-        );
-      },
-    });
+    this.appAccessService
+      .assignUserToApp({
+        userId,
+        appId: this.appId,
+      })
+      .subscribe({
+        next: () => {
+          this.showSuccess('User Assigned', 'User has been assigned successfully.');
+          this.closeAssignModal();
+          this.loadAll();
+        },
+        error: (err: any) => {
+          this.snackBar.open(err?.error?.message || 'Failed to assign user.', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
   }
 
   revokeUser(userId: number): void {
-    const user = this.appUsers().find(u => u.id === userId);
+    const user = this.appUsers().find((u) => u.id === userId);
     const ref = this.dialog.open(ConfirmDialogComponent, {
       position: { top: '80px' },
       data: {
@@ -263,10 +272,9 @@ openAddCheckDialog(): void {
           this.loadAll();
         },
         error: (err: any) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to revoke access.',
-            'Close', { duration: 3000 }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to revoke access.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
@@ -294,22 +302,33 @@ openAddCheckDialog(): void {
 
   getRoleBadgeClass(role: string): string {
     switch (role) {
-      case 'SYSTEM_ADMIN': return 'badge badge-system-admin';
-      case 'ADMIN': return 'badge badge-admin';
-      default: return 'badge badge-user';
+      case 'SYSTEM_ADMIN':
+        return 'badge badge-system-admin';
+      case 'ADMIN':
+        return 'badge badge-admin';
+      default:
+        return 'badge badge-user';
     }
   }
 
   getRoleLabel(role: string): string {
     switch (role) {
-      case 'SYSTEM_ADMIN': return 'System Admin';
-      case 'ADMIN': return 'Admin';
-      default: return 'Normal User';
+      case 'SYSTEM_ADMIN':
+        return 'System Admin';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return 'Normal User';
     }
   }
 
   getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   goBack(): void {
@@ -317,77 +336,77 @@ openAddCheckDialog(): void {
   }
 
   getCheckTypeBadgeClass(type: string): string {
-  const map: Record<string, string> = {
-    CLUSTER: 'badge badge-cluster',
-    DATA: 'badge badge-data',
-    FILE: 'badge badge-file',
-  };
-  return map[type] ?? 'badge';
-}
+    const map: Record<string, string> = {
+      CLUSTER: 'badge badge-cluster',
+      DATA: 'badge badge-data',
+      FILE: 'badge badge-file',
+    };
+    return map[type] ?? 'badge';
+  }
 
-getCheckTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    CLUSTER: 'Cluster',
-    DATA: 'Data',
-    FILE: 'File',
-  };
-  return map[type] ?? type;
-}
+  getCheckTypeLabel(type: string): string {
+    const map: Record<string, string> = {
+      CLUSTER: 'Cluster',
+      DATA: 'Data',
+      FILE: 'File',
+    };
+    return map[type] ?? type;
+  }
 
-getSeverityBadgeClass(severity: string): string {
-  const map: Record<string, string> = {
-    LOW: 'badge badge-low',
-    MEDIUM: 'badge badge-medium',
-    HIGH: 'badge badge-high',
-    CRITICAL: 'badge badge-critical',
-  };
-  return map[severity] ?? 'badge';
-}
+  getSeverityBadgeClass(severity: string): string {
+    const map: Record<string, string> = {
+      LOW: 'badge badge-low',
+      MEDIUM: 'badge badge-medium',
+      HIGH: 'badge badge-high',
+      CRITICAL: 'badge badge-critical',
+    };
+    return map[severity] ?? 'badge';
+  }
 
-viewCheck(checkId: number): void {
-  this.router.navigate(['/apps', this.appId, 'checks', checkId]);
-}
+  viewCheck(checkId: number): void {
+    this.router.navigate(['/apps', this.appId, 'checks', checkId]);
+  }
 
-toggleCheck(check: CheckResponse): void {
-  const action = check.status === 'ENABLED'
-    ? this.checkService.disableCheck(check.id)
-    : this.checkService.enableCheck(check.id);
+  toggleCheck(check: CheckResponse): void {
+    const action =
+      check.status === 'ENABLED'
+        ? this.checkService.disableCheck(check.id)
+        : this.checkService.enableCheck(check.id);
 
-  action.subscribe({
-    next: () => {
-      this.loadChecks();
-      this.loadAll();
-    },
-    error: (err: any) => {
-      this.snackBar.open(
-        err?.error?.message || 'Failed to update check.',
-        'Close', { duration: 3000 }
-      );
-    },
-  });
-}
-
-deleteCheck(check: CheckResponse): void {
-  const ref = this.dialog.open(ConfirmDialogComponent, {
-    position: { top: '80px' },
-    data: {
-      title: 'Delete Check',
-      message: `Are you sure you want to delete "${check.name}"?`,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel',
-      isDanger: true,
-    },
-  });
-  ref.afterClosed().subscribe((confirmed) => {
-    if (!confirmed) return;
-    this.checkService.deleteCheck(check.id).subscribe({
+    action.subscribe({
       next: () => {
         this.loadChecks();
         this.loadAll();
-        this.showSuccess('Check Deleted', `"${check.name}" has been deleted successfully.`);
       },
-      error: () => this.errorMessage.set('Failed to delete check.'),
+      error: (err: any) => {
+        this.snackBar.open(err?.error?.message || 'Failed to update check.', 'Close', {
+          duration: 3000,
+        });
+      },
     });
-  });
-}
+  }
+
+  deleteCheck(check: CheckResponse): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      position: { top: '80px' },
+      data: {
+        title: 'Delete Check',
+        message: `Are you sure you want to delete "${check.name}"?`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        isDanger: true,
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.checkService.deleteCheck(check.id).subscribe({
+        next: () => {
+          this.loadChecks();
+          this.loadAll();
+          this.showSuccess('Check Deleted', `"${check.name}" has been deleted successfully.`);
+        },
+        error: () => this.errorMessage.set('Failed to delete check.'),
+      });
+    });
+  }
 }

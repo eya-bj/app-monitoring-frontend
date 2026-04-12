@@ -1,0 +1,194 @@
+<div class="logs-container">
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <select class="form-select" [(ngModel)]="filterStatus">
+        <option value="">All Statuses</option>
+        @for (s of statusOptions; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select class="form-select" [(ngModel)]="filterCheckType">
+        <option value="">All Types</option>
+        @for (t of checkTypeOptions; track t) {
+          <option [value]="t">{{ getCheckTypeLabel(t) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <input class="form-input" type="datetime-local"
+        [(ngModel)]="filterFrom" />
+    </div>
+
+    <div class="filter-group">
+      <input class="form-input" type="datetime-local"
+        [(ngModel)]="filterTo" />
+    </div>
+
+    <button class="btn-primary" (click)="applyFilters()">
+      <mat-icon>filter_list</mat-icon>
+      Apply
+    </button>
+
+    <button class="btn-secondary" (click)="resetFilters()">
+      <mat-icon>clear</mat-icon>
+      Reset
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading results...</span>
+    </div>
+  }
+
+  <!-- Results Table -->
+  @if (!isLoading() && results().length > 0) {
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Executed At</th>
+            <th>Check Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Details</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (result of results(); track result.id) {
+            <tr class="result-row"
+              [class.expanded]="isExpanded(result.id)"
+              (click)="result.checkType === 'CLUSTER' ? toggleExpand(result.id) : null">
+              <td>{{ result.executedAt | date: 'MMM d, HH:mm:ss' }}</td>
+              <td class="check-name">{{ result.checkName }}</td>
+              <td>
+                <span [class]="getCheckTypeBadgeClass(result.checkType)">
+                  {{ getCheckTypeLabel(result.checkType) }}
+                </span>
+              </td>
+              <td>
+                <span [class]="getStatusClass(result.status)">
+                  {{ result.status }}
+                </span>
+              </td>
+              <td>{{ formatDuration(result.durationMs) }}</td>
+              <td class="details-cell">
+                @if (result.status === 'FAILED') {
+                  <span class="error-text">
+                    {{ result.errorMessage }}
+                  </span>
+                  @if (result.details) {
+                    <span class="details-text" [matTooltip]="result.details" matTooltipClass="custom-tooltip">
+                      {{ result.details }}
+                    </span>
+                  }
+                } @else {
+                  <span class="details-text" [matTooltip]="result.details!" matTooltipClass="custom-tooltip">
+                    {{ result.details }}
+                  </span>
+                }
+              </td>
+              <td>
+                @if (result.checkType === 'CLUSTER') {
+                  <mat-icon class="expand-icon">
+                    {{ isExpanded(result.id) ? 'expand_less' : 'expand_more' }}
+                  </mat-icon>
+                }
+              </td>
+            </tr>
+
+            <!-- Expandable Node Results -->
+            @if (isExpanded(result.id) && result.nodeResults.length > 0) {
+              <tr class="node-results-row">
+                <td colspan="7">
+                  <div class="node-results-container">
+                    <table class="node-table">
+                      <thead>
+                        <tr>
+                          <th>Node</th>
+                          <th>IP Address</th>
+                          <th>Port</th>
+                          <th>Status</th>
+                          <th>Duration</th>
+                          <th>HTTP Status</th>
+                          <th>Error</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (node of result.nodeResults; track node.label) {
+                          <tr>
+                            <td>{{ node.label }}</td>
+                            <td class="mono">{{ node.ipAddress }}</td>
+                            <td>{{ node.port }}</td>
+                            <td>
+                              <span [class]="getStatusClass(node.status)">
+                                {{ node.status }}
+                              </span>
+                            </td>
+                            <td>{{ formatDuration(node.durationMs) }}</td>
+                            <td>{{ node.httpStatusCode || '—' }}</td>
+                            <td>{{ node.errorMessage || '—' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing {{ currentPage() * pageSize() + 1 }}–{{
+          Math.min((currentPage() + 1) * pageSize(), totalElements())
+        }} of {{ totalElements() }} results
+      </div>
+      <div class="pagination-controls">
+        <select class="form-select size-select"
+          [(ngModel)]="pageSize"
+          (ngModelChange)="onPageSizeChange()">
+          @for (s of pageSizeOptions; track s) {
+            <option [value]="s">{{ s }} / page</option>
+          }
+        </select>
+        <button class="btn-page"
+          [disabled]="currentPage() === 0"
+          (click)="goToPage(currentPage() - 1)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="page-indicator">
+          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+        </span>
+        <button class="btn-page"
+          [disabled]="currentPage() >= totalPages() - 1"
+          (click)="goToPage(currentPage() + 1)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && results().length === 0) {
+    <div class="empty-state">
+      <mat-icon>history</mat-icon>
+      <span>No execution results found</span>
+    </div>
+  }
+
+</div>

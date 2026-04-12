@@ -59,10 +59,14 @@ export class UserDetailComponent implements OnInit {
 
   currentUser = computed(() => this.authService.currentUser());
   isSystemAdmin = computed(() => this.currentUser()?.role === 'SYSTEM_ADMIN');
+  canManageUserApps = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === 'SYSTEM_ADMIN' || role === 'ADMIN';
+  });
 
   availableApps = computed(() => {
-    const assignedIds = this.userApps().map(a => a.id);
-    return this.allApps().filter(a => !assignedIds.includes(a.id));
+    const assignedIds = this.userApps().map((a) => a.id);
+    return this.allApps().filter((a) => !assignedIds.includes(a.id));
   });
 
   private userId!: number;
@@ -124,16 +128,21 @@ export class UserDetailComponent implements OnInit {
         isDanger: false,
       },
     });
-    ref.afterClosed().subscribe(confirmed => {
+    ref.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       const request: UpdateUserRequest = { role: this.selectedRole() };
       this.userService.updateUserRole(this.userId, request).subscribe({
         next: () => {
-          this.showSuccess('Role Updated', `${this.user()?.name}'s role has been updated to ${this.selectedRole()}.`);
+          this.showSuccess(
+            'Role Updated',
+            `${this.user()?.name}'s role has been updated to ${this.selectedRole()}.`,
+          );
           this.loadAll();
         },
         error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to update role.', 'Close', { duration: 3000 });
+          this.snackBar.open(err.error?.message || 'Failed to update role.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
@@ -150,7 +159,7 @@ export class UserDetailComponent implements OnInit {
         isDanger: true,
       },
     });
-    ref.afterClosed().subscribe(confirmed => {
+    ref.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.userService.deleteUser(this.userId).subscribe({
         next: () => {
@@ -158,13 +167,16 @@ export class UserDetailComponent implements OnInit {
           this.router.navigate(['/users']);
         },
         error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete user.', 'Close', { duration: 3000 });
+          this.snackBar.open(err.error?.message || 'Failed to delete user.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
   }
 
   openAssignModal(): void {
+    if (!this.canManageUserApps()) return;
     this.selectedAppId.set(null);
     this.showAssignModal.set(true);
   }
@@ -174,6 +186,7 @@ export class UserDetailComponent implements OnInit {
   }
 
   assignApp(): void {
+    if (!this.canManageUserApps()) return;
     const appId = this.selectedAppId();
     if (!appId) return;
     this.appAccessService.assignUserToApp({ userId: this.userId, appId }).subscribe({
@@ -183,13 +196,16 @@ export class UserDetailComponent implements OnInit {
         this.loadAll();
       },
       error: (err) => {
-        this.snackBar.open(err.error?.message || 'Failed to assign app.', 'Close', { duration: 3000 });
+        this.snackBar.open(err.error?.message || 'Failed to assign app.', 'Close', {
+          duration: 3000,
+        });
       },
     });
   }
 
   revokeApp(appId: number): void {
-    const app = this.userApps().find(a => a.id === appId);
+    if (!this.canManageUserApps()) return;
+    const app = this.userApps().find((a) => a.id === appId);
     const ref = this.dialog.open(ConfirmDialogComponent, {
       position: { top: '80px' },
       data: {
@@ -200,15 +216,20 @@ export class UserDetailComponent implements OnInit {
         isDanger: true,
       },
     });
-    ref.afterClosed().subscribe(confirmed => {
+    ref.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.appAccessService.revokeUserFromApp(this.userId, appId).subscribe({
         next: () => {
-          this.showSuccess('Access Revoked', `Access to ${app?.name} has been revoked successfully.`);
+          this.showSuccess(
+            'Access Revoked',
+            `Access to ${app?.name} has been revoked successfully.`,
+          );
           this.loadAll();
         },
         error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to revoke access.', 'Close', { duration: 3000 });
+          this.snackBar.open(err.error?.message || 'Failed to revoke access.', 'Close', {
+            duration: 3000,
+          });
         },
       });
     });
@@ -224,22 +245,33 @@ export class UserDetailComponent implements OnInit {
 
   getRoleBadgeClass(role: string): string {
     switch (role) {
-      case 'SYSTEM_ADMIN': return 'badge badge-system-admin';
-      case 'ADMIN': return 'badge badge-admin';
-      default: return 'badge badge-user';
+      case 'SYSTEM_ADMIN':
+        return 'badge badge-system-admin';
+      case 'ADMIN':
+        return 'badge badge-admin';
+      default:
+        return 'badge badge-user';
     }
   }
 
   getRoleLabel(role: string): string {
     switch (role) {
-      case 'SYSTEM_ADMIN': return 'System Admin';
-      case 'ADMIN': return 'Admin';
-      default: return 'Normal User';
+      case 'SYSTEM_ADMIN':
+        return 'System Admin';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return 'Normal User';
     }
   }
 
   getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   goBack(): void {

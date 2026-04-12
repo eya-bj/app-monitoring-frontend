@@ -7,11 +7,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CheckService } from '../../../core/services/check';
 import { CronBuilderComponent } from '../../../shared/components/cron-builder/cron-builder';
 import {
-  CheckType, Severity, HealthStrategy, DbType,
-  ComparisonType, FileFormat, ValidationRule,
-  CreateClusterCheckRequest, CreateDataCheckRequest,
-  CreateFileCheckRequest, ClusterNodeRequest, FileCheckRuleRequest,
-
+  CheckType,
+  Severity,
+  HealthStrategy,
+  DbType,
+  ComparisonType,
+  FileFormat,
+  ValidationRule,
+  SftpAuthMethod,
+  CreateClusterCheckRequest,
+  CreateDataCheckRequest,
+  CreateFileCheckRequest,
+  ClusterNodeRequest,
+  FileCheckRuleRequest,
 } from '../../../core/models/check';
 
 @Component({
@@ -32,7 +40,7 @@ export class AddCheckComponent implements OnInit {
   // ─── Common ───────────────────────────────────────────
   name = '';
   description = '';
-  cronExpression = '';
+  cronExpression = '0 */5 * * * ?';
   severity: Severity = 'HIGH';
   consecutiveThreshold = 3;
 
@@ -72,30 +80,23 @@ export class AddCheckComponent implements OnInit {
   sftpHost = '';
   sftpPort = 22;
   sftpUsername = '';
+  sftpAuthMethod: 'PASSWORD' | 'SSH_KEY' = 'PASSWORD';
   sftpPassword = '';
+  sftpPrivateKey = '';
   folderPath = '';
   fileNamePattern = '';
   expectedFormat: FileFormat = 'CSV';
-  validationRules: FileCheckRuleRequest[] = [
-    { rule: 'EXISTS', ruleOrder: 1 }
-  ];
+  validationRules: FileCheckRuleRequest[] = [{ rule: 'EXISTS', ruleOrder: 1 }];
 
   // ─── Options ──────────────────────────────────────────
   severityOptions: Severity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
   dbTypeOptions: DbType[] = ['POSTGRESQL', 'MYSQL', 'ORACLE'];
-  comparisonTypeOptions: ComparisonType[] = [
-    'EQUALS', 'NOT_ZERO', 'EQUALS_EXPECTED',
-    'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE',
-  ];
   fileFormatOptions: FileFormat[] = ['CSV', 'TXT'];
+  authMethodOptions: SftpAuthMethod[] = ['PASSWORD', 'SSH_KEY'];
   validationRuleOptions: ValidationRule[] = [
     'EXISTS', 'NOT_TEMP', 'GENERATED_AFTER', 'SIZE_MIN',
     'HEADER_MATCH', 'ROW_COUNT_MIN', 'CONTAINS_STRING',
     'COLUMN_NUMERIC', 'NO_EMPTY_COLUMN',
-  ];
-  rulesRequiringValue: ValidationRule[] = [
-    'GENERATED_AFTER', 'SIZE_MIN', 'HEADER_MATCH',
-    'ROW_COUNT_MIN', 'CONTAINS_STRING', 'COLUMN_NUMERIC',
   ];
 
   constructor(
@@ -151,16 +152,9 @@ export class AddCheckComponent implements OnInit {
     }
   }
 
-  ruleRequiresValue(rule: ValidationRule): boolean {
-    return this.rulesRequiringValue.includes(rule);
-  }
-
   // ─── Validation ───────────────────────────────────────
   isCommonValid(): boolean {
-    return (
-      this.name.trim().length > 0 &&
-      this.cronExpression.trim().length > 0
-    );
+    return this.name.trim().length > 0 && this.cronExpression.trim().length > 0;
   }
 
   isFormValid(): boolean {
@@ -170,12 +164,12 @@ export class AddCheckComponent implements OnInit {
         return (
           this.protocol.trim().length > 0 &&
           this.healthPath.trim().length > 0 &&
-          this.nodes.every(n =>
-            n.ipAddress.trim().length > 0 && n.label.trim().length > 0
-          ) &&
+          !this.getStatusCodeError() &&
+          !this.getTimeoutError() &&
+          !this.hasNodeErrors() &&
           (!this.authRequired ||
             (this.authUsername.trim().length > 0 &&
-              this.authPassword.trim().length > 0))
+             this.authPassword.trim().length > 0))
         );
       case 'DATA':
         return (
@@ -183,17 +177,21 @@ export class AddCheckComponent implements OnInit {
           this.primaryDbName.trim().length > 0 &&
           this.primaryDbUsername.trim().length > 0 &&
           this.primaryDbPassword.trim().length > 0 &&
-          this.queryA.trim().length > 0
+          !this.getQueryError(this.queryA, 'Query A') &&
+          (!this.hasQueryB || !this.getQueryError(this.queryB, 'Query B'))
         );
       case 'FILE':
         return (
           this.sftpHost.trim().length > 0 &&
           this.sftpUsername.trim().length > 0 &&
-          this.sftpPassword.trim().length > 0 &&
-          this.folderPath.trim().length > 0 &&
+          (this.sftpAuthMethod === 'PASSWORD'
+            ? this.sftpPassword.trim().length > 0
+            : this.sftpPrivateKey.trim().length > 0) &&
+          !this.getFolderPathError() &&
           this.fileNamePattern.trim().length > 0 &&
+          !this.getFileFormatError() &&
           this.validationRules.length > 0 &&
-          !this.getFileFormatError()
+          !this.hasRuleErrors()
         );
       default:
         return false;
@@ -205,7 +203,6 @@ export class AddCheckComponent implements OnInit {
     if (!this.isFormValid()) return;
     this.isLoading.set(true);
     this.errorMessage.set('');
-
     switch (this.selectedType()) {
       case 'CLUSTER': this.submitCluster(); break;
       case 'DATA':    this.submitData();    break;
@@ -233,59 +230,55 @@ export class AddCheckComponent implements OnInit {
     this.checkService.createClusterCheck(this.appId, request).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(
-          ['/apps', this.appId],
-          { queryParams: { tab: 'checks', action: 'created' } }
-        );
+        this.router.navigate(['/apps', this.appId], {
+          queryParams: { tab: 'checks', action: 'created' },
+        });
       },
       error: (err: any) => {
         this.isLoading.set(false);
         this.errorMessage.set(err?.error?.message ?? 'Failed to create check.');
       },
-
     });
-
   }
 
-private submitData(): void {
-  const request: CreateDataCheckRequest = {
-    name: this.name.trim(),
-    description: this.description.trim() || undefined,
-    cronExpression: this.cronExpression.trim(),
-    severity: this.severity,
-    consecutiveThreshold: this.consecutiveThreshold,
-    primaryDbType: this.primaryDbType,
-    primaryDbHost: this.primaryDbHost.trim(),
-    primaryDbPort: this.primaryDbPort,
-    primaryDbName: this.primaryDbName.trim(),
-    primaryDbUsername: this.primaryDbUsername.trim(),
-    primaryDbPassword: this.primaryDbPassword.trim(),
-    queryA: this.queryA.trim(),
-    comparisonType: this.comparisonType,
-    expectedValue: this.expectedValue ?? undefined,
-    toleranceValue: this.toleranceValue ?? undefined,
-    secondaryDbType: this.hasSecondaryDb ? this.secondaryDbType : undefined,
-    secondaryDbHost: this.hasSecondaryDb ? this.secondaryDbHost.trim() : undefined,
-    secondaryDbPort: this.hasSecondaryDb ? this.secondaryDbPort : undefined,
-    secondaryDbName: this.hasSecondaryDb ? this.secondaryDbName.trim() : undefined,
-    secondaryDbUsername: this.hasSecondaryDb ? this.secondaryDbUsername.trim() : undefined,
-    secondaryDbPassword: this.hasSecondaryDb ? this.secondaryDbPassword.trim() : undefined,
-    queryB: this.hasQueryB ? this.queryB.trim() : undefined,
-  };
-  this.checkService.createDataCheck(this.appId, request).subscribe({
-    next: () => {
-      this.isLoading.set(false);
-      this.router.navigate(
-        ['/apps', this.appId],
-        { queryParams: { tab: 'checks', action: 'created' } }
-      );
-    },
-    error: (err: any) => {
-      this.isLoading.set(false);
-      this.errorMessage.set(err?.error?.message ?? 'Failed to create check.');
-    },
-  });
-}
+  private submitData(): void {
+    const request: CreateDataCheckRequest = {
+      name: this.name.trim(),
+      description: this.description.trim() || undefined,
+      cronExpression: this.cronExpression.trim(),
+      severity: this.severity,
+      consecutiveThreshold: this.consecutiveThreshold,
+      primaryDbType: this.primaryDbType,
+      primaryDbHost: this.primaryDbHost.trim(),
+      primaryDbPort: this.primaryDbPort,
+      primaryDbName: this.primaryDbName.trim(),
+      primaryDbUsername: this.primaryDbUsername.trim(),
+      primaryDbPassword: this.primaryDbPassword.trim(),
+      queryA: this.queryA.trim(),
+      comparisonType: this.comparisonType,
+      expectedValue: this.expectedValue ?? undefined,
+      toleranceValue: this.toleranceValue ?? undefined,
+      secondaryDbType: this.hasSecondaryDb ? this.secondaryDbType : undefined,
+      secondaryDbHost: this.hasSecondaryDb ? this.secondaryDbHost.trim() : undefined,
+      secondaryDbPort: this.hasSecondaryDb ? this.secondaryDbPort : undefined,
+      secondaryDbName: this.hasSecondaryDb ? this.secondaryDbName.trim() : undefined,
+      secondaryDbUsername: this.hasSecondaryDb ? this.secondaryDbUsername.trim() : undefined,
+      secondaryDbPassword: this.hasSecondaryDb ? this.secondaryDbPassword.trim() : undefined,
+      queryB: this.hasQueryB ? this.queryB.trim() : undefined,
+    };
+    this.checkService.createDataCheck(this.appId, request).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/apps', this.appId], {
+          queryParams: { tab: 'checks', action: 'created' },
+        });
+      },
+      error: (err: any) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(err?.error?.message ?? 'Failed to create check.');
+      },
+    });
+  }
 
   private submitFile(): void {
     const request: CreateFileCheckRequest = {
@@ -297,7 +290,11 @@ private submitData(): void {
       sftpHost: this.sftpHost.trim(),
       sftpPort: this.sftpPort,
       sftpUsername: this.sftpUsername.trim(),
-      sftpPassword: this.sftpPassword.trim(),
+      sftpAuthMethod: this.sftpAuthMethod,
+      sftpPassword: this.sftpAuthMethod === 'PASSWORD'
+        ? this.sftpPassword.trim() : undefined,
+      sftpPrivateKey: this.sftpAuthMethod === 'SSH_KEY'
+        ? this.sftpPrivateKey.trim() : undefined,
       folderPath: this.folderPath.trim(),
       fileNamePattern: this.fileNamePattern.trim(),
       expectedFormat: this.expectedFormat,
@@ -306,10 +303,9 @@ private submitData(): void {
     this.checkService.createFileCheck(this.appId, request).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(
-          ['/apps', this.appId],
-          { queryParams: { tab: 'checks', action: 'created' } }
-        );
+        this.router.navigate(['/apps', this.appId], {
+          queryParams: { tab: 'checks', action: 'created' },
+        });
       },
       error: (err: any) => {
         this.isLoading.set(false);
@@ -318,7 +314,127 @@ private submitData(): void {
     });
   }
 
-  // ─── Helpers ──────────────────────────────────────────
+  // ─── Cluster Validation Helpers ───────────────────────
+  getStatusCodeError(): string {
+    if (!this.expectedStatusCode) return 'Status code is required';
+    if (this.expectedStatusCode < 100 || this.expectedStatusCode > 599)
+      return 'Status code must be between 100 and 599';
+    return '';
+  }
+
+  getTimeoutError(): string {
+    if (!this.timeoutSeconds) return 'Timeout is required';
+    if (this.timeoutSeconds < 1 || this.timeoutSeconds > 60)
+      return 'Timeout must be between 1 and 60 seconds';
+    return '';
+  }
+
+  getNodePortError(port: number): string {
+    if (!port) return 'Port is required';
+    if (port < 1 || port > 65535) return 'Port must be between 1 and 65535';
+    return '';
+  }
+
+  hasNodeErrors(): boolean {
+    return this.nodes.some(n =>
+      !n.ipAddress.trim() ||
+      !n.label.trim() ||
+      !!this.getNodePortError(n.port)
+    );
+  }
+
+  // ─── Data Validation Helpers ──────────────────────────
+  getQueryError(query: string, fieldName: string): string {
+    if (!query.trim()) return fieldName + ' is required';
+    const upper = query.trim().toUpperCase();
+    const dangerous = ['DROP', 'DELETE', 'UPDATE', 'INSERT',
+                       'TRUNCATE', 'ALTER', 'CREATE'];
+    for (const keyword of dangerous) {
+      if (upper.includes(keyword))
+        return fieldName + ' must be a read-only SELECT query — "'
+          + keyword + '" is not allowed';
+    }
+    return '';
+  }
+
+  // ─── File Validation Helpers ──────────────────────────
+  getFolderPathError(): string {
+    if (!this.folderPath.trim()) return 'Folder path is required';
+    if (!this.folderPath.trim().startsWith('/'))
+      return 'Folder path must start with /';
+    return '';
+  }
+
+  getFileFormatError(): string {
+    if (!this.fileNamePattern.trim()) return '';
+    const pattern = this.fileNamePattern.trim().toLowerCase();
+    const format = this.expectedFormat.toLowerCase();
+    const dotIndex = pattern.lastIndexOf('.');
+    if (dotIndex !== -1) {
+      const ext = pattern.substring(dotIndex + 1).replace('*', '').trim();
+      if (ext && ext !== 'csv' && ext !== 'txt')
+        return 'File pattern must have a .csv or .txt extension';
+      if (ext === 'csv' && format !== 'csv')
+        return 'File pattern ends with .csv but format is set to ' + this.expectedFormat;
+      if (ext === 'txt' && format !== 'txt')
+        return 'File pattern ends with .txt but format is set to ' + this.expectedFormat;
+    }
+    return '';
+  }
+
+  ruleRequiresValue(rule: string): boolean {
+    return ['GENERATED_AFTER', 'SIZE_MIN', 'HEADER_MATCH',
+            'ROW_COUNT_MIN', 'CONTAINS_STRING',
+            'COLUMN_NUMERIC', 'NO_EMPTY_COLUMN'].includes(rule);
+  }
+
+  getRuleValueError(rule: string, value: string | undefined): string {
+    if (!this.ruleRequiresValue(rule)) return '';
+    if (!value || !value.trim()) return 'Value is required for this rule';
+    switch (rule) {
+      case 'GENERATED_AFTER':
+        return /^\d{2}:\d{2}$/.test(value.trim())
+          ? '' : 'Must be a valid time (HH:mm), e.g. 08:00';
+      case 'SIZE_MIN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 0
+          ? '' : 'Must be a positive number (bytes)';
+      case 'ROW_COUNT_MIN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 1
+          ? '' : 'Must be a number >= 1';
+      case 'COLUMN_NUMERIC':
+      case 'NO_EMPTY_COLUMN':
+        return /^\d+$/.test(value.trim()) && parseInt(value) >= 0
+          ? '' : 'Must be a column index >= 0';
+      case 'HEADER_MATCH':
+      case 'CONTAINS_STRING':
+        return value.trim().length > 0 ? '' : 'Value is required';
+      default:
+        return '';
+    }
+  }
+
+  hasRuleErrors(): boolean {
+    return this.validationRules.some(r =>
+      !!this.getRuleValueError(r.rule, r.value)
+    );
+  }
+
+  // ─── Comparison Type Helper ───────────────────────────
+  get filteredComparisonTypes(): ComparisonType[] {
+    const isSingleValueMode = !this.hasSecondaryDb && !this.hasQueryB;
+    return isSingleValueMode
+      ? ['NOT_ZERO', 'EQUALS_EXPECTED']
+      : ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
+  }
+
+  onModeChange(): void {
+    const valid = this.filteredComparisonTypes;
+    if (!valid.includes(this.comparisonType)) {
+      this.comparisonType = valid[0];
+    }
+  }
+
+  // ─── Display Helpers ──────────────────────────────────
   getTypeLabel(type: CheckType): string {
     const map: Record<CheckType, string> = {
       CLUSTER: 'Cluster Check',
@@ -327,30 +443,4 @@ private submitData(): void {
     };
     return map[type];
   }
-getFileFormatError(): string {
-  if (!this.fileNamePattern.trim()) return '';
-  const pattern = this.fileNamePattern.trim().toLowerCase();
-  const format = this.expectedFormat.toLowerCase();
-
-  if (pattern.endsWith('.csv') && format !== 'csv')
-    return 'File pattern ends with .csv but format is set to ' + this.expectedFormat;
-  if (pattern.endsWith('.txt') && format !== 'txt')
-    return 'File pattern ends with .txt but format is set to ' + this.expectedFormat;
-
-  return '';
-}
-get filteredComparisonTypes(): ComparisonType[] {
-  const isSingleValueMode = !this.hasSecondaryDb && !this.hasQueryB;
-  if (isSingleValueMode) {
-    return ['NOT_ZERO', 'EQUALS_EXPECTED'];
-  } else {
-    return ['EQUALS', 'SOURCE_GREATER', 'EQUALS_WITH_TOLERANCE'];
-  }
-}
-onModeChange(): void {
-  const valid = this.filteredComparisonTypes;
-  if (!valid.includes(this.comparisonType)) {
-    this.comparisonType = valid[0];
-  }
-}
 }

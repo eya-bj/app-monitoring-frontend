@@ -8,6 +8,7 @@ import {
   EditProfileRequest,
   ResetPasswordRequest,
 } from '../models/user';
+import { PageResponse } from '../models/common';
 
 @Injectable({
   providedIn: 'root',
@@ -26,20 +27,20 @@ export class UserService {
   }
 
   getAllUsers(filters?: {
-    userName?: string;
-    email?: string;
-    role?: string;
-    page?: number;
-    size?: number;
-  }): Observable<any> {
-    let params = new HttpParams();
-    if (filters?.userName) params = params.set('userName', filters.userName);
-    if (filters?.email) params = params.set('email', filters.email);
-    if (filters?.role) params = params.set('role', filters.role);
-    if (filters?.page !== undefined) params = params.set('page', filters.page);
-    if (filters?.size !== undefined) params = params.set('size', filters.size);
-    return this.http.get<any>(this.baseUrl, { params });
-  }
+  userName?: string;
+  email?: string;
+  role?: string;
+  page?: number;
+  size?: number;
+}): Observable<PageResponse<UserResponse>> {
+  let params = new HttpParams();
+  if (filters?.userName) params = params.set('userName', filters.userName);
+  if (filters?.email) params = params.set('email', filters.email);
+  if (filters?.role) params = params.set('role', filters.role);
+  if (filters?.page !== undefined) params = params.set('page', filters.page.toString());
+  if (filters?.size !== undefined) params = params.set('size', filters.size.toString());
+  return this.http.get<PageResponse<UserResponse>>(this.baseUrl, { params });
+}
 
   updateUserRole(id: number, request: UpdateUserRequest): Observable<UserResponse> {
     return this.http.put<UserResponse>(`${this.baseUrl}/${id}/update-role`, request);
