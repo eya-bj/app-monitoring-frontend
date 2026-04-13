@@ -39,6 +39,10 @@ export class AppLogsComponent implements OnInit {
   // ─── Options ──────────────────────────────────────────
   statusOptions: ResultStatus[] = ['PASSED', 'FAILED'];
   checkTypeOptions: CheckType[] = ['CLUSTER', 'DATA', 'FILE'];
+  // ─── Export ───────────────────────────────────────────
+  isExporting = signal(false);
+  showExportMenu = signal(false);
+
 
   constructor(private checkResultService: CheckResultService) {}
 
@@ -108,6 +112,44 @@ export class AppLogsComponent implements OnInit {
     return this.expandedResultId() === resultId;
   }
 
+  // ─── Export ───────────────────────────────────────────
+  toggleExportMenu(): void {
+    this.showExportMenu.set(!this.showExportMenu());
+  }
+
+  exportResults(format: 'pdf' | 'excel'): void {
+    this.showExportMenu.set(false);
+    this.isExporting.set(true);
+
+    this.checkResultService.exportResults(
+      this.appId,
+      format,
+      this.filterStatus || undefined,
+      this.filterCheckType || undefined,
+      this.filterFrom || undefined,
+      this.filterTo || undefined,
+    ).subscribe({
+      next: (blob: Blob) => {
+        const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+        const status = this.filterStatus ? `_${this.filterStatus}` : '';
+        const type = this.filterCheckType ? `_${this.filterCheckType}` : '';
+        const from = this.filterFrom ? `_from-${this.filterFrom.substring(0, 10)}` : '';
+        const to = this.filterTo ? `_to-${this.filterTo.substring(0, 10)}` : '';
+        const filename = `results${status}${type}${from}${to}.${ext}`;
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isExporting.set(false);
+      },
+      error: () => {
+        this.isExporting.set(false);
+      }
+    });
+  }
   // ─── Helpers ──────────────────────────────────────────
   getStatusClass(status: ResultStatus): string {
     return status === 'PASSED' ? 'badge badge-passed' : 'badge badge-failed';

@@ -39,6 +39,25 @@
       <mat-icon>clear</mat-icon>
       Reset
     </button>
+
+    <div class="export-dropdown">
+      <button class="btn-secondary" (click)="toggleExportMenu()">
+        Export as
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      @if (showExportMenu()) {
+        <div class="export-menu">
+          <button class="export-option" (click)="exportResults('pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            PDF
+          </button>
+          <button class="export-option" (click)="exportResults('excel')">
+            <mat-icon>table_view</mat-icon>
+            Excel
+          </button>
+        </div>
+      }
+    </div>
   </div>
 
   <!-- Loading -->

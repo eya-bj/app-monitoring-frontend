@@ -49,4 +49,26 @@ export class CheckResultService {
       { params }
     );
   }
+
+  // ─── Export results ───────────────────────────────────────────────
+
+  exportResults(
+  appId: number,
+  format: 'pdf' | 'excel',
+  status?: string,
+  checkType?: string,
+  from?: string,
+  to?: string
+): Observable<Blob> {
+  let params = new HttpParams().set('format', format);
+  if (status) params = params.set('status', status);
+  if (checkType) params = params.set('checkType', checkType);
+  if (from) params = params.set('from', from);
+  if (to) params = params.set('to', to);
+
+  return this.http.get(
+    `${this.baseUrl}/apps/${appId}/results/export`,
+    { params, responseType: 'blob' }
+  );
+}
 }
