@@ -261,9 +261,8 @@
 
     <!-- Tab: Logs -->
     @if (activeTab() === 'logs') {
-      <app-logs [appId]="app()!.id"></app-logs>
+      <app-logs [appId]="app()!.id" [appName]="app()!.name"></app-logs>
     }
-
     <!-- Tab: Users -->
     @if (isAdmin() && activeTab() === 'users') {
       <div class="card">

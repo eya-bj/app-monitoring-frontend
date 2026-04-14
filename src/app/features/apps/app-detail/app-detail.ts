@@ -82,40 +82,36 @@ export class AppDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.appId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadAll();
+  this.appId = Number(this.route.snapshot.paramMap.get('id'));
+  this.loadAll();
 
-    const tab = this.route.snapshot.queryParams['tab'];
-    const action = this.route.snapshot.queryParams['action'];
-
-    if (tab === 'checks') {
-      this.activeTab.set('checks');
-      this.loadChecks();
-    }
-
-    if (tab === 'logs') {
-  this.activeTab.set('logs');
+  const tab = this.route.snapshot.queryParams['tab'] as 'info' | 'checks' | 'users' | 'logs';
+  if (tab) {
+    this.setTab(tab);
   }
 
-    if (tab === 'users' && this.isAdmin()) {
-      this.activeTab.set('users');
-    }
-
-    if (action === 'created') {
-      this.showSuccess('Check Created', 'Check has been created successfully.');
-    }
-    if (action === 'deleted') {
-      this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
-    }
+  const action = this.route.snapshot.queryParams['action'];
+  if (action === 'created') {
+    this.showSuccess('Check Created', 'Check has been created successfully.');
   }
+  if (action === 'deleted') {
+    this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
+  }
+}
 
   // ─── Tab ──────────────────────────────────────────────
 
-setTab(tab: 'info' | 'checks' | 'users' | 'logs'): void {
-  if (tab === 'users' && !this.isAdmin()) {
+  setTab(tab: 'info' | 'checks' | 'users' | 'logs'): void {
+    if (tab === 'users' && !this.isAdmin()) {
       return;
     }
     this.activeTab.set(tab);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
     if (tab === 'checks') this.loadChecks();
   }
 

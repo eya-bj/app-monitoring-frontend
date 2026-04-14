@@ -512,7 +512,8 @@ export class CheckDetailComponent implements OnInit {
     const dangerous = ['DROP', 'DELETE', 'UPDATE', 'INSERT',
                        'TRUNCATE', 'ALTER', 'CREATE'];
     for (const keyword of dangerous) {
-      if (upper.includes(keyword))
+      const regex = new RegExp('\\b' + keyword + '\\b');
+      if (regex.test(upper))
         return fieldName + ' must be a read-only SELECT query — "'
           + keyword + '" is not allowed';
     }

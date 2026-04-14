@@ -17,6 +17,8 @@ import { PageResponse } from '../../../core/models/common';
 })
 export class AppLogsComponent implements OnInit {
   @Input() appId!: number;
+  @Input() appName: string = '';
+
   Math = Math;
 
   // ─── State ────────────────────────────────────────────
@@ -131,11 +133,12 @@ export class AppLogsComponent implements OnInit {
     ).subscribe({
       next: (blob: Blob) => {
         const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+        const appName = (this.appName || 'app').replace(/\s+/g, '_');
         const status = this.filterStatus ? `_${this.filterStatus}` : '';
         const type = this.filterCheckType ? `_${this.filterCheckType}` : '';
         const from = this.filterFrom ? `_from-${this.filterFrom.substring(0, 10)}` : '';
         const to = this.filterTo ? `_to-${this.filterTo.substring(0, 10)}` : '';
-        const filename = `results${status}${type}${from}${to}.${ext}`;
+        const filename = `${appName}_results${status}${type}${from}${to}.${ext}`;
 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

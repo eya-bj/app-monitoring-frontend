@@ -343,18 +343,18 @@ export class AddCheckComponent implements OnInit {
     );
   }
 
-  // ─── Data Validation Helpers ──────────────────────────
   getQueryError(query: string, fieldName: string): string {
-    if (!query.trim()) return fieldName + ' is required';
-    const upper = query.trim().toUpperCase();
-    const dangerous = ['DROP', 'DELETE', 'UPDATE', 'INSERT',
-                       'TRUNCATE', 'ALTER', 'CREATE'];
-    for (const keyword of dangerous) {
-      if (upper.includes(keyword))
-        return fieldName + ' must be a read-only SELECT query — "'
-          + keyword + '" is not allowed';
-    }
-    return '';
+      if (!query.trim()) return fieldName + ' is required';
+      const upper = query.trim().toUpperCase();
+      const dangerous = ['DROP', 'DELETE', 'UPDATE', 'INSERT',
+                        'TRUNCATE', 'ALTER', 'CREATE'];
+      for (const keyword of dangerous) {
+        const regex = new RegExp('\\b' + keyword + '\\b');
+        if (regex.test(upper))
+          return fieldName + ' must be a read-only SELECT query — "'
+            + keyword + '" is not allowed';
+      }
+      return '';
   }
 
   // ─── File Validation Helpers ──────────────────────────
