@@ -16,6 +16,7 @@ import { UserService } from '../../../core/services/user';
 import { CheckResponse, CheckType, CheckStatus } from '../../../core/models/check';
 import { CheckService } from '../../../core/services/check';
 import { AppLogsComponent } from '../app-logs/app-logs';
+import { AppDashboard } from '../../app-dashboard/app-dashboard';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../../shared/components/success-dialog/success-dialog';
 import { EditAppDialogComponent } from '../edit-app-dialog/edit-app-dialog';
@@ -36,6 +37,7 @@ import { CronHumanPipe } from '../../../shared/pipes/cron-human-pipe';
     MatDialogModule,
     CronHumanPipe,
     AppLogsComponent,
+    AppDashboard
   ],
   templateUrl: './app-detail.html',
   styleUrl: './app-detail.scss',
@@ -47,7 +49,7 @@ export class AppDetailComponent implements OnInit {
   isLoading = signal(true);
   errorMessage = signal('');
 
-  activeTab = signal<'info' | 'checks' | 'users' | 'logs'>('info');
+  activeTab = signal<'dashboard' | 'info' | 'checks' | 'users' | 'logs'>('dashboard');
 
   showAssignModal = signal(false);
   selectedUserId = signal<number | null>(null);
@@ -85,8 +87,7 @@ export class AppDetailComponent implements OnInit {
   this.appId = Number(this.route.snapshot.paramMap.get('id'));
   this.loadAll();
 
-  const tab = this.route.snapshot.queryParams['tab'] as 'info' | 'checks' | 'users' | 'logs';
-  if (tab) {
+const tab = this.route.snapshot.queryParams['tab'] as 'dashboard' | 'info' | 'checks' | 'users' | 'logs';  if (tab) {
     this.setTab(tab);
   }
 
@@ -101,7 +102,7 @@ export class AppDetailComponent implements OnInit {
 
   // ─── Tab ──────────────────────────────────────────────
 
-  setTab(tab: 'info' | 'checks' | 'users' | 'logs'): void {
+setTab(tab: 'dashboard' | 'info' | 'checks' | 'users' | 'logs'): void {
     if (tab === 'users' && !this.isAdmin()) {
       return;
     }

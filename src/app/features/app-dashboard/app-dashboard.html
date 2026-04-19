@@ -1,0 +1,416 @@
+<div class="dash-page">
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S1. EXPORT BUTTON                         -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="export-row">
+    <button class="btn-export" >
+      <mat-icon>download</mat-icon>
+      Export PDF
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S2. AI HEALTH REPORT                      -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="ai-card ai-neutral">
+
+    @if (true) {
+      <!-- PLACEHOLDER STATE — no report generated yet -->
+      <div class="ai-header">
+        <div class="ai-left">
+          <div class="ai-icon-box neutral-box">
+            <mat-icon class="ai-icon neutral-icon">bar_chart</mat-icon>
+          </div>
+          <div class="ai-title-block">
+            <div class="ai-name-row">
+              <span class="ai-name">AI Health Report</span>
+              <span class="ai-pill">Auto-generated</span>
+            </div>
+            <div class="ai-not-yet">
+              <mat-icon class="ai-not-yet-icon">schedule</mat-icon>
+              <span>Not yet generated</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-regen">
+          <mat-icon>refresh</mat-icon>
+          Generate Report
+        </button>
+      </div>
+    } @else {
+      <!-- FULL STATE — report available (Week 2) -->
+      <div class="ai-header">
+        <div class="ai-left">
+          <div class="ai-icon-box neutral-box">
+            <mat-icon class="ai-icon neutral-icon">bar_chart</mat-icon>
+          </div>
+          <div class="ai-title-block">
+            <div class="ai-name-row">
+              <span class="ai-name">AI Health Report</span>
+              <span class="ai-pill">Auto-generated</span>
+            </div>
+            <div class="ai-score-row">
+              <span class="ai-score neutral-score">—</span>
+              <span class="ai-score-den">/100</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-regen">
+          <mat-icon>refresh</mat-icon>
+          Generate Report
+        </button>
+      </div>
+
+      <div class="ai-grid">
+        <div class="ai-glass-card">
+          <div class="ai-sec-title">
+            <span class="vbar blue-bar"></span>
+            Summary
+          </div>
+          <p class="ai-sec-body">—</p>
+        </div>
+        <div class="ai-glass-card">
+          <div class="ai-sec-title">
+            <span class="vbar purple-bar"></span>
+            Key Findings
+          </div>
+          <p class="ai-sec-body">—</p>
+        </div>
+      </div>
+
+      <div class="ai-glass-card">
+        <div class="ai-sec-title">
+          <span class="vbar amber-bar"></span>
+          Suggested Actions
+        </div>
+        <p class="ai-sec-body">—</p>
+      </div>
+
+      <div class="ai-footer">
+        <mat-icon class="ai-footer-icon">schedule</mat-icon>
+        <span>Generated at —</span>
+      </div>
+    }
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S3. FILTER BAR                            -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="filter-bar">
+    <select class="f-input" [(ngModel)]="filterStatus">
+      <option value="">All Status</option>
+      <option value="PASSED">Passed</option>
+      <option value="FAILED">Failed</option>
+    </select>
+    <select class="f-input" [(ngModel)]="filterType">
+      <option value="">All Types</option>
+      <option value="CLUSTER">Cluster</option>
+      <option value="DATA">Data</option>
+      <option value="FILE">File</option>
+    </select>
+    <div class="f-btns">
+      <button class="btn-apply" (click)="applyFilters()">Apply</button>
+      <button class="btn-reset" (click)="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S4. STATS GRID                            -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="stats-grid">
+
+    <!-- Pass Rate -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Pass Rate</span>
+        <div class="stat-icon-box" [class]="getPassRateClass(stats()?.passRate) + '-icon'">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) { <span class="stat-val muted-val">—</span> }
+      @else {
+        <span class="stat-val" [class]="getPassRateClass(stats()?.passRate)">{{ stats()?.passRate ?? 0 }}%</span>
+        <span class="stat-sub">{{ stats()?.passedLast24h }}/{{ (stats()?.passedLast24h ?? 0) + (stats()?.failedLast24h ?? 0) }} passed</span>
+      }
+    </div>
+
+    <!-- Failed 24h -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Failed (24h)</span>
+        <div class="stat-icon-box" [class]="(stats()?.failedLast24h ?? 0) > 0 ? 'red-icon' : 'gray-icon'">
+          <mat-icon>cancel</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) { <span class="stat-val muted-val">—</span> }
+      @else {
+        <span class="stat-val" [class]="(stats()?.failedLast24h ?? 0) > 0 ? 'value-red' : 'value-muted'">{{ stats()?.failedLast24h ?? 0 }}</span>
+        <span class="stat-sub">Last 24 hours</span>
+      }
+    </div>
+
+    <!-- Last Run -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Last Run</span>
+        <div class="stat-icon-box emerald-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) {
+        <span class="stat-val muted-val">—</span>
+      } @else {
+        <span class="stat-val" [class]="getLastExecutionClass(stats()?.lastExecution ?? null)">
+          {{ timeAgoValue(stats()?.lastExecution ?? null) }}
+        </span>
+        <span class="stat-sub">{{ timeAgoUnit(stats()?.lastExecution ?? null) }}</span>
+      }
+    </div>
+
+    <!-- Next Run -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Next Run</span>
+        <div class="stat-icon-box blue-icon">
+          <mat-icon>play_circle</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) {
+        <span class="stat-val muted-val">—</span>
+      } @else {
+        <span class="stat-val value-blue">
+          {{ timeFromNowValue(stats()?.nextExecution ?? null) }}
+        </span>
+        <span class="stat-sub">{{ timeFromNowUnit(stats()?.nextExecution ?? null) }}</span>
+      }
+    </div>
+
+    <!-- New Alerts -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">New Alerts</span>
+        <div class="stat-icon-box" [class]="getNewAlertsClass(stats()?.newAlerts ?? 0) + '-icon'">
+          <mat-icon>notifications</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) { <span class="stat-val muted-val">—</span> }
+      @else {
+        <span class="stat-val" [class]="getNewAlertsClass(stats()?.newAlerts ?? 0)">{{ stats()?.newAlerts ?? 0 }}</span>
+        <span class="stat-sub">Active</span>
+      }
+    </div>
+
+    <!-- Acknowledged -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Acknowledged</span>
+        <div class="stat-icon-box amber-icon">
+          <mat-icon>timer</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) { <span class="stat-val muted-val">—</span> }
+      @else {
+        <span class="stat-val value-yellow">{{ stats()?.acknowledgedAlerts ?? 0 }}</span>
+        <span class="stat-sub">In progress</span>
+      }
+    </div>
+
+    <!-- Resolved -->
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-lbl">Resolved</span>
+        <div class="stat-icon-box emerald-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+      </div>
+      @if (statsLoading()) { <span class="stat-val muted-val">—</span> }
+      @else {
+        <span class="stat-val value-green">{{ stats()?.resolvedToday ?? 0 }}</span>
+        <span class="stat-sub">Today</span>
+      }
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S5. ACTIVE ALERTS                         -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="panel-card">
+    <div class="panel-header">
+      <div class="panel-header-left">
+        <div class="panel-icon-box red-border-box">
+          <mat-icon class="panel-icon red-icon-clr">warning</mat-icon>
+        </div>
+        <div>
+          <div class="panel-title">Active Alerts</div>
+          <div class="panel-sub">Showing up to 5 most recent alerts</div>
+        </div>
+      </div>
+      @if (activeAlerts().length > 0) {
+        <button class="btn-viewall" (click)="navigateToAlerts()">
+          View all alerts →
+        </button>
+      }
+    </div>
+
+    @if (alertsLoading()) {
+      <div class="state-row"><mat-icon class="spin">refresh</mat-icon><span>Loading...</span></div>
+    } @else if (activeAlerts().length === 0) {
+      <div class="empty-alerts">
+        <mat-icon class="empty-icon">check_circle</mat-icon>
+        <div class="state-row muted-text">No Active Alerts</div>
+      </div>
+    } @else {
+      <div class="alerts-stack">
+        @for (alert of activeAlerts(); track alert.id) {
+          <div class="alert-card">
+            <div class="alert-row-1">
+              <span class="alert-sev" [class]="'as-' + alert.severity.toLowerCase()">
+                {{ alert.severity }}
+              </span>
+              <span class="alert-ts">{{ timeAgo(alert.createdAt) }}</span>
+            </div>
+            <div class="alert-row-2">
+                <span class="alert-msg-text">
+                  {{ alert.message }}
+                  @if (!alert.isGroup && alert.consecutiveFailures > 1) {
+                    <span class="alert-failures">— {{ alert.consecutiveFailures }} consecutive failures</span>
+                  }
+                </span>
+                <button class="btn-ack">Acknowledge</button>
+            </div>
+            @if (alert.isGroup && alert.aiSummary) {
+              <div class="alert-ai">{{ alert.aiSummary }}</div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S6. CHARTS                                -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="charts-row">
+
+    <!-- Doughnut card -->
+      <div class="panel-card chart-pad">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="chart-icon-box purple-border-box">
+              <mat-icon class="chart-icon purple-icon-clr">donut_large</mat-icon>
+            </div>
+            <div>
+              <div class="panel-title">Pass/Fail Ratio</div>
+              <div class="panel-sub">Check execution distribution</div>
+            </div>
+          </div>
+        </div>
+      <div class="chart-body">
+        @if (chartsLoading()) {
+          <div class="state-row"><mat-icon class="spin">refresh</mat-icon></div>
+        } @else if ((stats()?.passedLast24h ?? 0) + (stats()?.failedLast24h ?? 0) === 0) {
+          <div class="state-row muted-text">No data</div>
+        } @else {
+          <div class="donut-wrap">
+            <canvas baseChart [data]="doughnutData" [options]="doughnutOptions" type="doughnut"></canvas>
+            <div class="donut-center">{{ stats()?.passRate ?? 0 }}%</div>
+          </div>
+          <span class="donut-sub">Overall Pass Rate</span>
+          @if (stats()?.checkTypeBreakdown?.length) {
+            <div class="type-breakdown">
+              @for (item of stats()!.checkTypeBreakdown; track item.checkType) {
+                <div class="type-row">
+                  <span class="type-label">{{ item.checkType }}</span>
+                  <div class="type-bar-wrap">
+                    <div class="type-bar-fill" [style.width.%]="item.passRate"></div>
+                  </div>
+                  <span class="type-pct" [class]="getPassRateClass(item.passRate)">
+                    {{ item.passRate }}%
+                  </span>
+                </div>
+              }
+  </div>
+}
+        }
+      </div>
+    </div>
+
+    <!-- Line chart -->
+    <div class="panel-card chart-pad line-chart-card">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <div class="chart-icon-box blue-border-box">
+            <mat-icon class="chart-icon blue-icon-clr">trending_up</mat-icon>
+          </div>
+          <div>
+            <div class="panel-title">Results Over Time</div>
+            <div class="panel-sub">7-day trend</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-body line-body">
+        @if (chartsLoading()) {
+          <div class="state-row"><mat-icon class="spin">refresh</mat-icon></div>
+        } @else if (timeline().length === 0) {
+          <div class="state-row muted-text">No data</div>
+        } @else {
+          <canvas baseChart [data]="lineData" [options]="lineOptions" type="line" style="max-height: 200px"></canvas>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- S7. LATEST RESULTS TABLE                  -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="panel-card">
+    <div class="panel-header">
+      <div class="panel-header-left">
+        <div class="chart-icon-box teal-border-box">
+          <mat-icon class="chart-icon teal-icon-clr">bolt</mat-icon>
+        </div>
+        <div>
+          <div class="panel-title">Latest Check Results</div>
+          <div class="panel-sub">Real-time execution status</div>
+        </div>
+      </div>
+    </div>
+
+    @if (latestLoading()) {
+      <div class="state-row"><mat-icon class="spin">refresh</mat-icon><span>Loading...</span></div>
+    } @else if (latest().length === 0) {
+      <div class="state-row muted-text">No results yet.</div>
+    } @else {
+      <div class="table-scroll">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Check Name</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Last Executed</th>
+              <th>Duration</th>
+              <th>Next Execution</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of latest(); track row.checkId) {
+              <tr class="t-row" (click)="navigateToCheck(row.checkId)">
+                <td class="t-name">{{ row.checkName }}</td>
+                <td><span class="t-badge" [class]="getTypeBadgeClass(row.checkType)">{{ row.checkType }}</span></td>
+                <td><span class="t-badge" [class]="getStatusBadgeClass(row.status)">{{ row.status }}</span></td>
+                <td class="t-gray">{{ timeAgo(row.lastExecutedAt) }}</td>
+                <td><span class="t-dur">{{ formatDuration(row.durationMs) }}</span></td>
+                <td class="t-gray">{{ timeFromNow(row.nextExecution) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>

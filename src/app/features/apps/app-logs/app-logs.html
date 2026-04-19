@@ -22,19 +22,23 @@
 
     <div class="filter-group">
       <input class="form-input" type="datetime-local"
-        [(ngModel)]="filterFrom" />
+        [(ngModel)]="filterFrom" [max]="getMaxDateTime()" />
     </div>
 
     <div class="filter-group">
       <input class="form-input" type="datetime-local"
-        [(ngModel)]="filterTo" />
+        [(ngModel)]="filterTo" [max]="getMaxDateTime()" />
     </div>
 
-    <button class="btn-primary" (click)="applyFilters()">
-      <mat-icon>filter_list</mat-icon>
+    <button class="btn-primary"
+      (click)="applyFilters()"
+      [disabled]="!!(
+        (filterFrom && filterFrom > getCurrentTime()) ||
+        (filterTo && filterTo > getCurrentTime()) ||
+        (filterFrom && filterTo && filterFrom >= filterTo)
+      )">
       Apply
     </button>
-
     <button class="btn-secondary" (click)="resetFilters()">
       <mat-icon>clear</mat-icon>
       Reset
@@ -58,7 +62,21 @@
         </div>
       }
     </div>
+    @if (filterFrom && filterFrom > getCurrentTime()) {
+      <div class="filter-error-row">
+        <span class="filter-error">"From" time cannot be in the future</span>
+      </div>
+    } @else if (filterTo && filterTo > getCurrentTime()) {
+      <div class="filter-error-row">
+        <span class="filter-error">"To" time cannot be in the future</span>
+      </div>
+    } @else if (filterFrom && filterTo && filterFrom >= filterTo) {
+      <div class="filter-error-row">
+        <span class="filter-error">"From" time must be before "To" time</span>
+      </div>
+    }
   </div>
+  
 
   <!-- Loading -->
   @if (isLoading()) {

@@ -2,6 +2,7 @@ import { Component, Input, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CheckResultService } from '../../../core/services/check-result';
 import { CheckResultResponse, ResultStatus } from '../../../core/models/check-result';
@@ -11,7 +12,7 @@ import { PageResponse } from '../../../core/models/common';
 @Component({
   selector: 'app-logs',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, MatIconModule, MatTooltipModule],
+  imports: [CommonModule, DatePipe, FormsModule, MatIconModule, MatTooltipModule, MatSnackBarModule],
   templateUrl: './app-logs.html',
   styleUrl: './app-logs.scss',
 })
@@ -46,7 +47,7 @@ export class AppLogsComponent implements OnInit {
   showExportMenu = signal(false);
 
 
-  constructor(private checkResultService: CheckResultService) {}
+  constructor(private checkResultService: CheckResultService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.loadResults();
@@ -77,7 +78,36 @@ export class AppLogsComponent implements OnInit {
   }
 
   // ─── Filters ──────────────────────────────────────────
+
+  getCurrentTime(): string {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }
+
+  getMaxDateTime(): string {
+    const now = new Date();
+    // Format: 2026-04-19T15:30
+    return now.toISOString().slice(0, 16);
+  }
+
   applyFilters(): void {
+    const currentTime = this.getCurrentTime();
+
+    if (this.filterFrom && this.filterFrom > currentTime) {
+      this.snackBar.open('"From" time cannot be in the future.', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (this.filterTo && this.filterTo > currentTime) {
+      this.snackBar.open('"To" time cannot be in the future.', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (this.filterFrom && this.filterTo && this.filterFrom >= this.filterTo) {
+          this.snackBar.open('"From" time must be before "To" time.', 'Close', {duration: 3000});
+          return;
+        }
+
     this.currentPage.set(0);
     this.loadResults();
   }

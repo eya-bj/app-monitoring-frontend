@@ -49,6 +49,10 @@
   @if (!isLoading() && app()) {
     <!-- Tabs -->
     <div class="tabs">
+      <button class="tab-btn" [class.active]="activeTab() === 'dashboard'" (click)="setTab('dashboard')">
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </button>
       <button class="tab-btn" [class.active]="activeTab() === 'info'" (click)="setTab('info')">
         <mat-icon>info</mat-icon>
         Info
@@ -76,6 +80,9 @@
     </div>
 
     <!-- Tab: Info -->
+    @if (activeTab() === 'dashboard') {
+      <app-dashboard [appId]="app()!.id" [appName]="app()!.name" />
+    }
     @if (activeTab() === 'info') {
       <div class="card">
         <div class="card-header">
