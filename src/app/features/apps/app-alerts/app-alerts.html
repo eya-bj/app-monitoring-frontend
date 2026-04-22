@@ -1,0 +1,181 @@
+<div class="alerts-page">
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <select class="f-input" [(ngModel)]="filterStatus">
+      <option value="">All Status</option>
+      <option value="NEW">New</option>
+      <option value="ACKNOWLEDGED">Acknowledged</option>
+      <option value="RESOLVED">Resolved</option>
+    </select>
+    <select class="f-input" [(ngModel)]="filterSeverity">
+      <option value="">All Severity</option>
+      <option value="CRITICAL">Critical</option>
+      <option value="WARNING">Warning</option>
+      <option value="INFO">Info</option>
+    </select>
+    <div class="f-btns">
+      <button class="btn-apply" (click)="applyFilters()">Apply</button>
+      <button class="btn-reset" (click)="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="state-row">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading alerts...</span>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && alerts().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">notifications_none</mat-icon>
+      <span class="empty-title">No alerts found</span>
+      <span class="empty-sub">Try changing the filters</span>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loading() && alerts().length > 0) {
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="alerts-table">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Message</th>
+              <th>Failures</th>
+              <th>Status</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (alert of alerts(); track alert.id) {
+
+              <!-- Main row -->
+              <tr class="t-row" [class.t-row-group]="alert.group">
+                <td>
+                  <span class="sev-badge" [ngClass]="getSeverityClass(alert.severity)">
+                    {{ alert.severity }}
+                  </span>
+                </td>
+                <td class="t-message">
+                  {{ alert.message }}
+                  @if (alert.group) {
+                    <span class="group-tag">🔗 {{ alert.childCount }} checks</span>
+                  }
+                </td>
+                <td class="t-muted">
+                  @if (!alert.group && alert.failureCount) {
+                    {{ alert.failureCount }}
+                  } @else if (alert.group) {
+                    —
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  <span class="status-pill" [ngClass]="getStatusClass(alert.status)">
+                    {{ alert.status }}
+                  </span>
+                </td>
+                <td class="t-muted">{{ formatDate(alert.createdAt) }}</td>
+                <td>
+                  <div class="t-actions">
+                    @if (alert.group) {
+                      <button class="btn-expand" (click)="toggleGroup(alert)">
+                        <mat-icon>{{ isExpanded(alert.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                      </button>
+                    }
+                    @if (alert.status === 'NEW') {
+                      <button class="btn-ack" (click)="acknowledge(alert)">Acknowledge</button>
+                    } @else if (alert.status === 'ACKNOWLEDGED' && isAdmin()) {
+                      <button class="btn-resolve" (click)="resolve(alert)">Resolve</button>
+                    } @else if (alert.status === 'ACKNOWLEDGED' && !(isAdmin())) {
+                      <span class="no-action">Working on it ...</span>
+                    } @else if (alert.status === 'RESOLVED') {
+                      <span class="no-action">No action needed</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Expanded children rows -->
+              @if (alert.group && isExpanded(alert.id)) {
+                @if (isLoadingChildren(alert.id)) {
+                  <tr>
+                    <td colspan="6">
+                      <div class="state-row">
+                        <mat-icon class="spin">refresh</mat-icon>
+                      </div>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (child of getChildren(alert.id); track child.id) {
+                    <tr class="t-child-row">
+                      <td>
+                        <span class="sev-badge sev-sm"
+                          [ngClass]="getSeverityClass(child.severity)">
+                          {{ child.severity }}
+                        </span>
+                      </td>
+                      <td class="t-message t-child-indent">
+                        ↳ {{ child.message }}
+                      </td>
+                      <td class="t-muted">
+                        {{ child.failureCount ?? '—' }}
+                      </td>
+                      <td>
+                        <span class="status-pill" [ngClass]="getStatusClass(child.status)">
+                          {{ child.status }}
+                        </span>
+                      </td>
+                      <td class="t-muted">{{ formatDate(child.createdAt) }}</td>
+                      <td class="t-muted">—</td>
+                    </tr>
+                  }
+                }
+              }
+
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 0">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        @for (p of pages; track p) {
+          <button class="page-btn" [class.active]="p === currentPage"
+            (click)="goToPage(p)">
+            {{ p + 1 }}
+          </button>
+        }
+        <button class="page-btn" (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages() - 1">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <select class="page-size-select" [(ngModel)]="pageSize"
+          (ngModelChange)="applyFilters()">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+        </select>
+        <span class="page-info">
+          {{ currentPage * pageSize + 1 }}–
+          {{ Math.min((currentPage + 1) * pageSize, totalElements()) }}
+          of {{ totalElements() }}
+        </span>
+      </div>
+    }
+  }
+
+</div>

@@ -7,6 +7,7 @@ import {
   UpdateUserRequest,
   EditProfileRequest,
   ResetPasswordRequest,
+  EditProfileResponse
 } from '../models/user';
 import { PageResponse } from '../models/common';
 
@@ -46,8 +47,10 @@ export class UserService {
     return this.http.put<UserResponse>(`${this.baseUrl}/${id}/update-role`, request);
   }
 
-  editProfile(id: number, request: EditProfileRequest): Observable<UserResponse> {
-    return this.http.put<UserResponse>(`${this.baseUrl}/${id}/edit-profile`, request);
+  editProfile(userId: number, request: any): Observable<EditProfileResponse> {
+    return this.http.put<EditProfileResponse>(
+      `${this.baseUrl}/${userId}/edit-profile`, request
+    );
   }
 
   resetPassword(id: number, request: ResetPasswordRequest): Observable<void> {

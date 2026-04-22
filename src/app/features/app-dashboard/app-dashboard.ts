@@ -5,6 +5,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth';
+import { computed } from '@angular/core';
+import { AlertRefreshService } from '../../core/services/alert-refresh';
 import {
   AppDashboardService,
   AppDashboardStatsDTO,
@@ -12,6 +15,7 @@ import {
   LatestCheckResultDTO,
   ActiveAlertDTO
 } from '../../core/services/app-dashboard';
+import { AlertService } from '../../core/services/alert';
 
 @Component({
   selector: 'app-dashboard',
@@ -54,6 +58,9 @@ export class AppDashboard implements OnInit, OnDestroy {
     private dashboardService: AppDashboardService,
     private router: Router,
     private route: ActivatedRoute,
+    private alertService: AlertService,
+    private authService: AuthService ,
+    private alertRefresh: AlertRefreshService 
 
   ) {}
 
@@ -70,9 +77,12 @@ export class AppDashboard implements OnInit, OnDestroy {
     if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
+  
+
   // ─── Load ─────────────────────────────────────────────
 
   loadAll(): void {
+    console.log('loadAll called at', new Date().toISOString());
     this.loadStats();
     this.loadTimeline();
     this.loadLatest();
@@ -124,6 +134,12 @@ export class AppDashboard implements OnInit, OnDestroy {
       error: () => this.alertsLoading.set(false)
     });
   }
+
+  currentUser = computed(() => this.authService.currentUser());
+  isAdmin = computed(() =>
+    this.currentUser()?.role === 'ADMIN' ||
+    this.currentUser()?.role === 'SYSTEM_ADMIN'
+  );
 
   // ─── Charts ───────────────────────────────────────────
 
@@ -336,9 +352,27 @@ export class AppDashboard implements OnInit, OnDestroy {
     }
 
     navigateToAlerts(): void {
-      this.router.navigate(['/alerts'], { queryParams: { app: this.appId } });
+      console.log('navigateToAlerts called', this.appId);
+      this.router.navigate(['/apps', this.appId], { queryParams: { tab: 'alerts' } });
     }
 
+    acknowledge(alert: ActiveAlertDTO): void {
+        this.alertService.acknowledge(alert.id, alert.group).subscribe({
+          next: () => {
+            this.alertRefresh.triggerRefresh();
+            this.loadAlerts();
+          }
+        });
+      }
+
+      resolve(alert: ActiveAlertDTO): void {
+        this.alertService.resolve(alert.id, alert.group).subscribe({
+          next: () => {
+            this.alertRefresh.triggerRefresh();  // ← add
+            this.loadAlerts();
+          }
+        });
+      }
     timeAgoValue(dateStr: string | null): string {
     if (!dateStr) return '—';
     const diff = Date.now() - new Date(dateStr).getTime();

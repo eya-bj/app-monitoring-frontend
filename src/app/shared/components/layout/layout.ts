@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-
+import { TopbarComponent } from '../topbar/topbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -35,6 +35,7 @@ interface NavItem {
     MatTooltipModule,
     MatDividerModule,
     MatMenuModule,
+    TopbarComponent,
   ],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
@@ -46,7 +47,6 @@ export class LayoutComponent implements OnInit {
     { label: 'Global Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Applications', icon: 'monitor_heart', route: '/apps' },
     { label: 'Users', icon: 'group', route: '/users', roles: ['SYSTEM_ADMIN', 'ADMIN'] },
-    { label: 'Profile', icon: 'person', route: '/profile' },
   ];
 
   visibleNavItems = computed(() => {

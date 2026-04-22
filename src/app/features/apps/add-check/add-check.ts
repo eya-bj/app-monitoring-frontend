@@ -41,7 +41,7 @@ export class AddCheckComponent implements OnInit {
   name = '';
   description = '';
   cronExpression = '0 */5 * * * ?';
-  severity: Severity = 'HIGH';
+  severity: Severity = 'CRITICAL';
   consecutiveThreshold = 3;
 
   // ─── Cluster ──────────────────────────────────────────
@@ -89,7 +89,7 @@ export class AddCheckComponent implements OnInit {
   validationRules: FileCheckRuleRequest[] = [{ rule: 'EXISTS', ruleOrder: 1 }];
 
   // ─── Options ──────────────────────────────────────────
-  severityOptions: Severity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+  severityOptions: Severity[] = ['CRITICAL' ,   'WARNING', 'INFO'];
   dbTypeOptions: DbType[] = ['POSTGRESQL', 'MYSQL', 'ORACLE'];
   fileFormatOptions: FileFormat[] = ['CSV', 'TXT'];
   authMethodOptions: SftpAuthMethod[] = ['PASSWORD', 'SSH_KEY'];

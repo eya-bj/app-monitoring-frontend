@@ -64,6 +64,11 @@
           <span class="tab-badge">{{ app()!.totalChecks }}</span>
         }
       </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'alerts'"
+        (click)="setTab('alerts')">
+        <mat-icon>notifications</mat-icon>
+        Alerts
+      </button>
       <button class="tab-btn" [class.active]="activeTab() === 'logs'" (click)="setTab('logs')">
         <mat-icon>history</mat-icon>
         Logs
@@ -137,31 +142,33 @@
     @if (activeTab() === 'checks') {
       <div class="tab-content-header">
         <div class="checks-filters">
-          <select
-            class="filter-select"
-            [(ngModel)]="selectedCheckType"
-            (ngModelChange)="loadChecks()"
-          >
+          <select class="filter-select" [(ngModel)]="selectedCheckType" 
+            (ngModelChange)="loadChecks()">
             <option value="">All Types</option>
             <option value="CLUSTER">Cluster</option>
             <option value="DATA">Data</option>
             <option value="FILE">File</option>
           </select>
-          <select
-            class="filter-select"
-            [(ngModel)]="selectedCheckStatus"
-            (ngModelChange)="loadChecks()"
-          >
+          <select class="filter-select" [(ngModel)]="selectedCheckStatus" 
+            (ngModelChange)="loadChecks()">
             <option value="">All Statuses</option>
             <option value="ENABLED">Enabled</option>
             <option value="DISABLED">Disabled</option>
           </select>
         </div>
         @if (isAdmin()) {
-          <button class="btn-primary" (click)="openAddCheckDialog()">
-            <mat-icon>add</mat-icon>
-            Add Check
-          </button>
+          <div class="header-actions">
+            @if (selectedCheckIds().length > 0) {
+              <button class="btn-secondary" (click)="runSelectedChecks()">
+                <mat-icon>play_arrow</mat-icon>
+                Run Selected ({{ selectedCheckIds().length }})
+              </button>
+            }
+            <button class="btn-primary" (click)="openAddCheckDialog()">
+              <mat-icon>add</mat-icon>
+              Add Check
+            </button>
+          </div>
         }
       </div>
 
@@ -184,6 +191,13 @@
           <table class="checks-table">
             <thead>
               <tr>
+                @if (isAdmin()) {
+                  <th>
+                    <input type="checkbox"
+                      [checked]="isAllSelected()"
+                      (change)="toggleSelectAll()">
+                  </th>
+                }
                 <th>Name</th>
                 <th>Type</th>
                 <th>Severity</th>
@@ -195,6 +209,14 @@
             <tbody>
               @for (check of checks(); track check.id) {
                 <tr class="table-row">
+                  @if (isAdmin()) {
+                    <td>
+                      <input type="checkbox"
+                        [disabled]="check.status === 'DISABLED'"
+                        [checked]="isCheckSelected(check.id)"
+                        (change)="toggleCheckSelection(check.id)">
+                    </td>
+                  }
                   <!-- Name -->
                   <td>
                     <div class="check-cell">
@@ -264,6 +286,10 @@
           </table>
         }
       </div>
+    }
+
+    @if (activeTab() === 'alerts') {
+      <app-alerts [appId]="app()!.id" />
     }
 
     <!-- Tab: Logs -->

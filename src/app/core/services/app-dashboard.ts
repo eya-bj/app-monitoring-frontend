@@ -41,13 +41,14 @@ export interface LatestCheckResultDTO {
 
 export interface ActiveAlertDTO {
   id: number;
-  isGroup: boolean;
+  group: boolean;
   severity: string;
   message: string;
   consecutiveFailures: number;
   childCount: number | null;
   aiSummary: string | null;
   createdAt: string;
+  status: string;
 }
 
 @Injectable({ providedIn: 'root' })

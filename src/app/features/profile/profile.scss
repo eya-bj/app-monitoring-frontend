@@ -19,11 +19,13 @@ $color-shadow: rgba(0, 0, 0, 0.06);
 
 // ─── Page Header ──────────────────────────────────────────────────
 .page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 20px;
+
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-top: -24px;
+  padding: 10px 24px 20px 24px;
   border-bottom: 1px solid $color-border;
+
 
   .page-title {
     font-size: 22px;
@@ -44,7 +46,7 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  align-items: start;
+  align-items: strecth;
 }
 
 .col-left,
@@ -54,6 +56,7 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   gap: 20px;
 }
 
+
 // ─── Card ─────────────────────────────────────────────────────────
 .card {
   background: $color-white;
@@ -61,7 +64,12 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   border: 1px solid $color-border;
   box-shadow: 0 1px 4px $color-shadow;
   overflow: hidden;
+  display: flex;          
+  flex-direction: column; 
+  height: 100%;           
 }
+
+
 
 .card-header {
   display: flex;
@@ -79,10 +87,9 @@ $color-shadow: rgba(0, 0, 0, 0.06);
 
 .card-body {
   padding: 20px;
+  flex: 1;                 
 
-  &.no-pad {
-    padding: 0;
-  }
+  &.no-pad { padding: 0; }
 }
 
 .card-footer {

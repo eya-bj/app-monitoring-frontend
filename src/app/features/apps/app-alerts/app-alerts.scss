@@ -1,0 +1,331 @@
+$white:      #ffffff;
+$bg:         #f9fafb;
+$border:     #e5e7eb;
+$accent:     #2563eb;
+$accent-dk:  #1d4ed8;
+$accent-bg:  #eff6ff;
+$text:       #111827;
+$text-2:     #374151;
+$muted:      #6b7280;
+$muted-lt:   #9ca3af;
+$green:      #64ce98;
+$green-bg:   #d1fae5;
+$green-text: #065f46;
+$amber:      #f59e0b;
+$amber-bg:   #fef3c7;
+$amber-text: #92400e;
+$red:        #ef4444;
+$red-bg:     #fee2e2;
+$red-text:   #991b1b;
+$shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+
+.alerts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Filter bar ────────────────────────────────────────────────
+.filter-bar {
+  background: $white;
+  border: 2px solid $border;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: $shadow-sm;
+}
+
+.f-input {
+  border: 2px solid $border;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: $text;
+  background: $white;
+  outline: none;
+  min-width: 160px;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: $accent; }
+}
+
+.f-btns {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-apply {
+  background: linear-gradient(135deg, $accent, $accent-dk);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: $white;
+  cursor: pointer;
+  &:hover { background: linear-gradient(135deg, $accent-dk, #1e40af); }
+}
+
+.btn-reset {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: $muted;
+  cursor: pointer;
+  &:hover { background: $border; color: $text; }
+}
+
+// ── States ────────────────────────────────────────────────────
+.state-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  color: $muted;
+  font-size: 14px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: $muted-lt;
+}
+
+.empty-title { font-size: 15px; font-weight: 600; color: $text; }
+.empty-sub   { font-size: 13px; color: $muted; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+// ── Table card ────────────────────────────────────────────────
+.table-card {
+  background: $white;
+  border: 2px solid $border;
+  border-radius: 12px;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.table-scroll { overflow-x: auto; }
+
+.alerts-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead tr {
+    background: linear-gradient(to right, #f9fafb, #f3f4f6);
+    border-bottom: 2px solid $border;
+  }
+
+  th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: $muted;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid $border;
+    color: $text-2;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.t-row {
+  transition: background 0.15s;
+  &:hover { background: $bg; }
+
+  &.t-row-group {
+    border-left: 3px solid $accent;
+  }
+}
+
+.t-child-row {
+  background: #fafafa;
+  transition: background 0.15s;
+  &:hover { background: #f3f4f6; }
+}
+
+.t-message {
+  font-weight: 600;
+  color: $text !important;
+  max-width: 320px;
+}
+
+.t-child-indent {
+  padding-left: 36px !important;
+  font-weight: 400 !important;
+  color: $text-2 !important;
+}
+
+.t-muted { color: $muted !important; font-size: 12px; }
+
+// ── Severity badge ────────────────────────────────────────────
+.sev-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+
+  &.as-critical { background: $red-bg;   color: $red-text; }
+  &.as-warning  { background: $amber-bg; color: $amber-text; }
+  &.as-info     { background: $accent-bg; color: $accent; }
+  &.sev-sm      { font-size: 10px; padding: 2px 7px; }
+}
+
+// ── Group tag ─────────────────────────────────────────────────
+.group-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: $accent;
+  background: $accent-bg;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+}
+
+// ── Status pill ───────────────────────────────────────────────
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &.status-new      { background: $red-bg;   color: $red-text; }
+  &.status-ack      { background: $amber-bg; color: $amber-text; }
+  &.status-resolved { background: $green-bg; color: $green-text; }
+}
+
+// ── Actions ───────────────────────────────────────────────────
+.t-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-expand {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid $border;
+  background: $white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: $muted;
+  transition: background 0.15s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: $bg; color: $text; }
+}
+
+.btn-ack {
+  font-size: 12px;
+  font-weight: 600;
+  color: $accent;
+  background: $accent-bg;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover { background: #dbeafe; }
+}
+
+.btn-resolve {
+  font-size: 12px;
+  font-weight: 600;
+  color: $green-text;
+  background: $green-bg;
+  border: 1px solid #6ee7b7;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover { background: #a7f3d0; }
+}
+
+// ── Pagination ────────────────────────────────────────────────
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid $border;
+  background: $white;
+  font-size: 13px;
+  color: $text-2;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0 8px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover:not(:disabled) { background: $bg; }
+  &.active { background: $accent; color: $white; border-color: $accent; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.page-size-select {
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: $text;
+  background: $white;
+  margin-left: 8px;
+}
+
+.page-info {
+  font-size: 12px;
+  color: $muted;
+  margin-left: 4px;
+}
+.no-action {
+  font-size: 12px;
+  color: $muted-lt;
+}

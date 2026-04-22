@@ -1,1 +1,187 @@
-<p>dashboard works!</p>
+<div class="dash-page">
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- HEADER                                     -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Overall system monitoring and health overview</p>
+  </div>
+
+  <!-- LOADING -->
+  @if (loading()) {
+    <div class="state-row">
+      <mat-icon class="spin">refresh</mat-icon>
+      <span>Loading dashboard...</span>
+    </div>
+  }
+
+  @if (!loading() && dashboard()) {
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- KPI CARDS                                  -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-lbl">Total Applications</span>
+          <div class="stat-icon-box blue-icon">
+            <mat-icon>monitor_heart</mat-icon>
+          </div>
+        </div>
+        <span class="stat-val value-blue">{{ dashboard()!.summary.totalApps }}</span>
+        <span class="stat-sub">Monitored systems</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-lbl">Healthy</span>
+          <div class="stat-icon-box emerald-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+        </div>
+        <span class="stat-val value-green">{{ dashboard()!.summary.healthyApps }}</span>
+        <span class="stat-sub">Operating normally</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-lbl">Warning</span>
+          <div class="stat-icon-box amber-icon">
+            <mat-icon>warning</mat-icon>
+          </div>
+        </div>
+        <span class="stat-val value-yellow">{{ dashboard()!.summary.warningApps }}</span>
+        <span class="stat-sub">Needs attention</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-lbl">Critical</span>
+          <div class="stat-icon-box red-icon">
+            <mat-icon>cancel</mat-icon>
+          </div>
+        </div>
+        <span class="stat-val value-red">{{ dashboard()!.summary.criticalApps }}</span>
+        <span class="stat-sub">Immediate action required</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-lbl">Unknown</span>
+          <div class="stat-icon-box gray-icon">
+            <mat-icon>help_outline</mat-icon>
+          </div>
+        </div>
+        <span class="stat-val value-muted">{{ dashboard()!.summary.unknownApps }}</span>
+        <span class="stat-sub">No results yet</span>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- CRITICAL ALERTS                            -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <div>
+            <div class="panel-title">Critical Alerts</div>
+            <div class="panel-sub">Unacknowledged critical issues across all apps</div>
+          </div>
+        </div>
+        @if (criticalAlerts().length > 0) {
+          <span class="active-badge">{{ criticalAlerts().length }} Active</span>
+        }
+      </div>
+
+      @if (criticalAlerts().length === 0) {
+        <div class="empty-alerts">
+          <div class="state-row muted-text">No Critical Alerts</div>
+        </div>
+      } @else {
+        <div class="alerts-stack">
+          @for (alert of criticalAlerts(); track alert.alertId) {
+            <div class="alert-card-red" (click)="goToAlerts(alert.appId)">
+
+              @if (!alert.isGroup) {
+                <div class="ac-line1">
+                  <span class="ac-appname">{{ alert.appName }}</span>
+                  <span class="ac-sep">·</span>
+                  <span class="ac-checkname">{{ alert.message }}</span>
+                </div>
+                @if (alert.failureCount && alert.failureCount > 1) {
+                  <div class="ac-failures">{{ alert.failureCount }} consecutive failures</div>
+                }
+                <div class="ac-line3">{{ formatDate(alert.createdAt) }}</div>
+              } @else {
+                <!-- GROUPED -->
+                <div class="ac-line1">
+                  <span class="ac-appname">{{ alert.appName }}</span>
+                  <span class="ac-group-badge">Grouped Alert</span>
+                  <span class="ac-count-badge">{{ alert.childCount }}</span>
+                </div>
+                <div class="ac-line2">{{ alert.message }}</div>
+                <div class="ac-line3">{{ formatDate(alert.createdAt) }}</div>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- APPLICATIONS OVERVIEW                      -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <div>
+            <div class="panel-title">Applications Overview</div>
+            <div class="panel-sub">{{ dashboard()!.apps.length }} monitored applications</div>
+          </div>
+        </div>
+      </div>
+
+      @if (dashboard()!.apps.length === 0) {
+        <div class="empty-alerts">
+          <div class="state-row muted-text">No apps configured yet.</div>
+        </div>
+      } @else {
+        <div class="alerts-stack">
+          @for (app of dashboard()!.apps; track app.appId) {
+            <div class="app-row-item" (click)="goToApp(app.appId)">
+              <div class="app-row-left">
+                <div class="app-info-col">
+                  <span class="app-item-name">{{ app.appName }}</span>
+                  @if (app.description) {
+                    <span class="app-item-desc">{{ app.description }}</span>
+                  }
+                  <span class="app-item-sub">Last check: {{ lastCheckTime(app.lastExecution) }}</span>
+                </div>
+              </div>
+              <div class="app-row-right">
+                <div class="health-score-col">
+                  <span class="health-score-val" [ngClass]="getScoreClass(app.healthStatus)">
+                    {{ app.passRate | number:'1.0-0' }} %
+                  </span>
+                  <span class="health-score-lbl">Health Score</span>
+                </div>
+                @if (app.newAlerts > 0) {
+                  <div class="alert-count-pill">
+                    <mat-icon class="alert-pill-icon">warning</mat-icon>
+                    {{ app.newAlerts }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

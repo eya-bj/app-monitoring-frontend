@@ -18,8 +18,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(clonedReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        authService.logout();
-        router.navigate(['/login']);
+        const currentToken = authService.getToken();
+        const isExpired = currentToken
+          ? authService.isTokenExpired(currentToken)
+          : true;
+        if (isExpired) {
+          authService.logout();
+          router.navigate(['/login']);
+        }
       }
       return throwError(() => error);
     })

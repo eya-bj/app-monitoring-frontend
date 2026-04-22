@@ -152,11 +152,12 @@ export class ProfileComponent implements OnInit {
         name: this.profileForm.get('name')?.value,
         email: this.profileForm.get('email')?.value,
       }).subscribe({
-        next: (updatedUser) => {
+        next: (response) => {
+          this.authService.saveToken(response.token);
           this.authService.saveUser({
             ...this.currentUser()!,
-            name: updatedUser.name,
-            email: updatedUser.email,
+            name: response.user.name,
+            email: response.user.email,
           });
           this.showSuccess('Profile Updated', 'Your profile has been updated successfully.');
         },
@@ -191,7 +192,8 @@ export class ProfileComponent implements OnInit {
         currentPassword: this.passwordForm.get('currentPassword')?.value,
         newPassword: this.passwordForm.get('newPassword')?.value,
       }).subscribe({
-        next: () => {
+        next: (response) => {
+          this.authService.saveToken(response.token);
           this.passwordForm.reset();
           this.showSuccess('Password Changed', 'Your password has been changed successfully.');
         },

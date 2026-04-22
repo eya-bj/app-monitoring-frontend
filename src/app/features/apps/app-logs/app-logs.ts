@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy , signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,16 +46,43 @@ export class AppLogsComponent implements OnInit {
   isExporting = signal(false);
   showExportMenu = signal(false);
 
+  private pollInterval: any;
+  private initialLoad = true;
+
 
   constructor(private checkResultService: CheckResultService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.loadResults();
+    this.initialLoad = false;
+    this.pollInterval = setInterval(() => this.silentRefresh(), 30000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+  }
+
+  silentRefresh(): void {
+    this.checkResultService.getAppResults(
+      this.appId,
+      this.currentPage(),
+      this.pageSize(),
+      this.filterStatus || undefined,
+      this.filterCheckType as CheckType || undefined,
+      this.filterFrom || undefined,
+      this.filterTo || undefined,
+    ).subscribe({
+      next: (page: PageResponse<CheckResultResponse>) => {
+        this.results.set(page.content);
+        this.totalElements.set(page.totalElements);
+        this.totalPages.set(page.totalPages);
+      }
+    });
   }
 
   // ─── Load ─────────────────────────────────────────────
   loadResults(): void {
-    this.isLoading.set(true);
+    if (this.initialLoad) this.isLoading.set(true);
     this.checkResultService.getAppResults(
       this.appId,
       this.currentPage(),
@@ -71,9 +98,7 @@ export class AppLogsComponent implements OnInit {
         this.totalPages.set(page.totalPages);
         this.isLoading.set(false);
       },
-      error: () => {
-        this.isLoading.set(false);
-      }
+      error: () => this.isLoading.set(false)
     });
   }
 

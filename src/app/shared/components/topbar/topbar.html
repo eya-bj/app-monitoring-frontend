@@ -1,0 +1,137 @@
+<div class="topbar">
+  <div class="topbar-right">
+
+    <!-- ── Bell Button ── -->
+    <div class="topbar-btn-wrap">
+      <button class="icon-btn" (click)="toggleBell()" [class.active]="bellOpen()">
+        <mat-icon class="tb-icon">notifications</mat-icon>
+        @if (unreadCount() > 0) {
+          <span class="badge">{{ unreadCount() }}</span>
+        }
+      </button>
+
+      <!-- Bell Dropdown -->
+      @if (bellOpen()) {
+        <div class="dropdown bell-dropdown" (click)="$event.stopPropagation()">
+
+          <!-- Header -->
+          <div class="dd-header">
+            <span class="dd-title">Notifications</span>
+            @if (unreadCount() > 0) {
+              <span class="dd-active-badge">{{ unreadCount() }} active</span>
+            }
+          </div>
+
+          <!-- Severity summary row -->
+          @if (alerts().length > 0) {
+            <div class="dd-summary">
+              @if (criticalCount() > 0) {
+                <span class="dd-summary-item">
+                  <span class="dot dot-critical"></span>
+                  {{ criticalCount() }} critical
+                </span>
+              }
+              @if (warningCount() > 0) {
+                <span class="dd-summary-item">
+                  <span class="dot dot-warning"></span>
+                  {{ warningCount() }} warning
+                </span>
+              }
+              @if (infoCount() > 0) {
+                <span class="dd-summary-item">
+                  <span class="dot dot-info"></span>
+                  {{ infoCount() }} info
+                </span>
+              }
+            </div>
+          }
+
+          <!-- Empty state -->
+          @if (alerts().length === 0) {
+            <div class="dd-empty">
+              <mat-icon class="dd-empty-icon">notifications_none</mat-icon>
+              <span>No active notifications today</span>
+            </div>
+          } @else {
+            <div class="dd-list">
+              @for (alert of alerts(); track alert.id) {
+                <div class="dd-alert-row" (click)="goToAlert(alert)">
+                  <div class="dd-alert-info">
+                    <div class="dd-alert-top">
+                      <span class="dd-app-name">{{ alert.appName }}</span>
+                      <span class="dd-sev-badge"
+                        [class.sev-badge-critical]="alert.severity === 'CRITICAL'"
+                        [class.sev-badge-warning]="alert.severity === 'WARNING'"
+                        [class.sev-badge-info]="alert.severity === 'INFO'">
+                        {{ alert.severity | titlecase }}
+                      </span>
+                    </div>
+                    <div class="dd-check-name">{{ alert.message }}</div>
+                    <div class="dd-alert-bottom">
+                      <span class="dd-ts">{{ formatTime(alert.createdAt) }}</span>
+                      <button class="dd-ack-btn"
+                        (click)="$event.stopPropagation(); acknowledge(alert.id, alert.group)">
+                        Acknowledge
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+
+    <!-- ── Profile Button ── -->
+    <div class="topbar-btn-wrap">
+      <button class="avatar-btn" (click)="toggleProfile()" [class.active]="profileOpen()">
+        <span class="avatar-circle">
+          <mat-icon class="avatar-icon">person</mat-icon>
+        </span>
+      </button>
+
+      <!-- Profile Dropdown -->
+      @if (profileOpen()) {
+        <div class="dropdown profile-dropdown" (click)="$event.stopPropagation()">
+          <div class="pd-user-section">
+            <span class="pd-avatar-lg">
+              <mat-icon class="pd-avatar-icon">person</mat-icon>
+            </span>
+            <div class="pd-user-info">
+              <span class="pd-name">{{ currentUser()?.name }}</span>
+              <span class="pd-email">{{ currentUser()?.email }}</span>
+              <span class="pd-role-badge">{{ currentUser()?.role }}</span>
+            </div>
+          </div>
+
+          <div class="pd-divider"></div>
+
+          <div class="pd-menu">
+            <button class="pd-item" (click)="goToProfile()">
+              <mat-icon class="pd-item-icon">manage_accounts</mat-icon>
+              View Profile
+            </button>
+          </div>
+
+          <div class="pd-divider"></div>
+
+          <div class="pd-menu">
+            <button class="pd-item pd-item-danger" (click)="logout()">
+              <mat-icon class="pd-item-icon">logout</mat-icon>
+              Logout
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- Click outside overlay -->
+@if (bellOpen() || profileOpen()) {
+  <div class="overlay" (click)="closeAll()"></div>
+}

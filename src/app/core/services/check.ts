@@ -124,4 +124,9 @@ export class CheckService {
       {}
     );
   }
+
+  runAllChecks(appId: number, checkIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/apps/${appId}/checks/run-now`, checkIds);
+  }
+
 }

@@ -69,7 +69,7 @@ export class CheckDetailComponent implements OnInit {
   editName = '';
   editDescription = '';
   editCronExpression = '0 */5 * * * ?';
-  editSeverity: Severity = 'HIGH';
+  editSeverity: Severity = 'CRITICAL';
   editConsecutiveThreshold = 3;
 
   // ─── Edit Fields — Cluster ────────────────────────────
@@ -117,7 +117,7 @@ export class CheckDetailComponent implements OnInit {
   editValidationRules: FileCheckRuleRequest[] = [];
 
   // ─── Options ──────────────────────────────────────────
-  severityOptions: Severity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+  severityOptions: Severity[] = ['CRITICAL', 'WARNING', 'INFO'];
   dbTypeOptions: DbType[] = ['POSTGRESQL', 'MYSQL', 'ORACLE'];
   fileFormatOptions: FileFormat[] = ['CSV', 'TXT'];
   authMethodOptions: SftpAuthMethod[] = ['PASSWORD', 'SSH_KEY'];
@@ -616,9 +616,8 @@ export class CheckDetailComponent implements OnInit {
 
   getSeverityBadgeClass(severity: string): string {
     const map: Record<string, string> = {
-      LOW: 'badge badge-low',
-      MEDIUM: 'badge badge-medium',
-      HIGH: 'badge badge-high',
+      INFO:     'badge badge-info',
+      WARNING:  'badge badge-warning',
       CRITICAL: 'badge badge-critical',
     };
     return map[severity] ?? 'badge';

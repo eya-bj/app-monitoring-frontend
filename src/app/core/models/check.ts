@@ -1,6 +1,6 @@
 export type CheckType = 'CLUSTER' | 'DATA' | 'FILE';
 export type CheckStatus = 'ENABLED' | 'DISABLED';
-export type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type Severity = 'CRITICAL' | 'WARNING' | 'INFO';
 export type HealthStrategy = 'ALL_UP' | 'MAJORITY_UP';
 export type DbType = 'POSTGRESQL' | 'MYSQL' | 'ORACLE';
 export type ComparisonType =

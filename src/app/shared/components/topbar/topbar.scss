@@ -1,0 +1,406 @@
+$white:      #ffffff;
+$border:     #e5e7eb;
+$text:       #111827;
+$text-2:     #374151;
+$muted:      #6b7280;
+$muted-lt:   #9ca3af;
+$accent:     #2563eb;
+$accent-dk:  #1d4ed8;
+$bg-hover:   #f3f4f6;
+$bg-light:   #f9fafb;
+$red:        #ef4444;
+$red-bg:     #fee2e2;
+$red-text:   #991b1b;
+$amber:      #f59e0b;
+$amber-bg:   #fef3c7;
+$amber-text: #92400e;
+$shadow-lg:  0 8px 24px rgba(0,0,0,0.10);
+$shadow-md:  0 4px 12px rgba(0,0,0,0.08);
+
+// ── Topbar ────────────────────────────────────────────────────
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 50px;
+  flex-shrink: 0;
+  background: $white;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-btn-wrap {
+  position: relative;
+  z-index: 300;
+}
+
+// ── Icon button (bell) ────────────────────────────────────────
+.icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: $white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: $muted;
+  transition: background 0.15s, color 0.15s;
+  padding: 8px;
+
+  &:hover, &.active { background: $bg-hover; color: $text; }
+}
+
+.tb-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+// ── Badge ─────────────────────────────────────────────────────
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  background: $red;
+  color: $white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid $white;
+  line-height: 1;
+}
+
+// ── Avatar button ─────────────────────────────────────────────
+.avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 8px;
+  transition: background 0.15s;
+
+  &:hover, &.active { background: $bg-hover; }
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: $white;
+}
+
+// ── Shared dropdown ───────────────────────────────────────────
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 12px;
+  box-shadow: $shadow-lg;
+  z-index: 200;
+  overflow: hidden;
+}
+
+// ── Bell dropdown ─────────────────────────────────────────────
+.bell-dropdown { width: 384px; }
+
+.dd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $border;
+}
+
+.dd-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+}
+
+.dd-active-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: $red-bg;
+  color: $red-text;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.dd-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid $border;
+  background: $bg-light;
+}
+
+.dd-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: $muted;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot-critical { background: $red; }
+  &.dot-warning  { background: $amber; }
+  &.dot-info     { background: $accent; }
+}
+
+.dd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: $muted;
+  font-size: 13px;
+}
+
+.dd-empty-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: $muted-lt;
+}
+
+.dd-list {
+  max-height: 384px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+}
+
+.dd-alert-row {
+  display: flex;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: $bg-light; }
+}
+
+.dd-icon-col {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.dd-sev-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+
+  &.sev-critical { color: $red; }
+  &.sev-warning  { color: $amber; }
+  &.sev-info     { color: $accent; }
+}
+
+.dd-alert-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dd-alert-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dd-app-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+}
+
+.dd-sev-badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
+
+  &.sev-badge-critical { background: $red-bg;   color: $red-text; }
+  &.sev-badge-warning  { background: $amber-bg; color: $amber-text; }
+  &.sev-badge-info     { background: #eff6ff;   color: $accent; }
+}
+
+.dd-check-name {
+  font-size: 12px;
+  color: $text-2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dd-alert-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dd-ts {
+  font-size: 11px;
+  color: $muted-lt;
+}
+
+.dd-ack-btn {
+  font-size: 11px;
+  font-weight: 600;
+  color: $accent;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+
+  &:hover { color: $accent-dk; }
+}
+
+// ── Profile dropdown ──────────────────────────────────────────
+.profile-dropdown { width: 256px; }
+
+.pd-user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.pd-avatar-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-avatar-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: $white;
+}
+
+.pd-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pd-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-email {
+  font-size: 11px;
+  color: $muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-role-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: #eff6ff;
+  color: $accent;
+  border-radius: 4px;
+  padding: 1px 6px;
+  align-self: flex-start;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pd-divider { height: 1px; background: $border; }
+
+.pd-menu { padding: 6px 8px; }
+
+.pd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-2;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+
+  &:hover { background: $bg-hover; color: $text; }
+  &.pd-item-danger { color: #dc2626; &:hover { background: $red-bg; } }
+}
+
+.pd-item-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: $muted;
+
+  .pd-item-danger & { color: #dc2626; }
+}
+
+// ── Click-outside overlay ─────────────────────────────────────
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}

@@ -42,3 +42,8 @@ export interface EditProfileRequest {
 export interface ResetPasswordRequest {
   newPassword: string;
 }
+
+export interface EditProfileResponse {
+  user: UserResponse;
+  token: string;
+}

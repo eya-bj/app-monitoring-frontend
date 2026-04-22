@@ -17,6 +17,7 @@ import { CheckResponse, CheckType, CheckStatus } from '../../../core/models/chec
 import { CheckService } from '../../../core/services/check';
 import { AppLogsComponent } from '../app-logs/app-logs';
 import { AppDashboard } from '../../app-dashboard/app-dashboard';
+import {AppAlertsComponent} from '../app-alerts/app-alerts';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../../shared/components/success-dialog/success-dialog';
 import { EditAppDialogComponent } from '../edit-app-dialog/edit-app-dialog';
@@ -37,7 +38,8 @@ import { CronHumanPipe } from '../../../shared/pipes/cron-human-pipe';
     MatDialogModule,
     CronHumanPipe,
     AppLogsComponent,
-    AppDashboard
+    AppDashboard,
+    AppAlertsComponent
   ],
   templateUrl: './app-detail.html',
   styleUrl: './app-detail.scss',
@@ -49,7 +51,7 @@ export class AppDetailComponent implements OnInit {
   isLoading = signal(true);
   errorMessage = signal('');
 
-  activeTab = signal<'dashboard' | 'info' | 'checks' | 'users' | 'logs'>('dashboard');
+  activeTab = signal<'dashboard' | 'info' | 'checks' | 'users' | 'alerts' | 'logs'>('dashboard');
 
   showAssignModal = signal(false);
   selectedUserId = signal<number | null>(null);
@@ -84,25 +86,36 @@ export class AppDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-  this.appId = Number(this.route.snapshot.paramMap.get('id'));
-  this.loadAll();
+    this.appId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadAll();
 
-const tab = this.route.snapshot.queryParams['tab'] as 'dashboard' | 'info' | 'checks' | 'users' | 'logs';  if (tab) {
-    this.setTab(tab);
-  }
+      this.route.queryParams.subscribe(params => {
+      const tab = params['tab'] as 'dashboard' | 'info' | 'checks' | 'users' | 'logs' | 'alerts';
+      if (tab) this.setTab(tab);
 
-  const action = this.route.snapshot.queryParams['action'];
-  if (action === 'created') {
-    this.showSuccess('Check Created', 'Check has been created successfully.');
+      const action = params['action'];
+      if (action === 'created') {
+        this.showSuccess('Check Created', 'Check has been created successfully.');
+      }
+      if (action === 'deleted') {
+        this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
+      }
+      if (action) {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { action: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      }
+    });
   }
-  if (action === 'deleted') {
-    this.showSuccess('Check Deleted', 'Check has been deleted successfully.');
-  }
-}
 
   // ─── Tab ──────────────────────────────────────────────
 
-setTab(tab: 'dashboard' | 'info' | 'checks' | 'users' | 'logs'): void {
+setTab(tab: 'dashboard' | 'info' | 'checks' | 'users' | 'alerts' | 'logs'): void {
+    if (tab !== 'checks') this.selectedCheckIds.set([]);
+
     if (tab === 'users' && !this.isAdmin()) {
       return;
     }
@@ -352,9 +365,8 @@ setTab(tab: 'dashboard' | 'info' | 'checks' | 'users' | 'logs'): void {
 
   getSeverityBadgeClass(severity: string): string {
     const map: Record<string, string> = {
-      LOW: 'badge badge-low',
-      MEDIUM: 'badge badge-medium',
-      HIGH: 'badge badge-high',
+      INFO:     'badge badge-info',
+      WARNING:  'badge badge-warning',
       CRITICAL: 'badge badge-critical',
     };
     return map[severity] ?? 'badge';
@@ -404,6 +416,57 @@ setTab(tab: 'dashboard' | 'info' | 'checks' | 'users' | 'logs'): void {
         },
         error: () => this.errorMessage.set('Failed to delete check.'),
       });
+    });
+  }
+
+  selectedCheckIds = signal<number[]>([]);
+
+isCheckSelected(checkId: number): boolean {
+  return this.selectedCheckIds().includes(checkId);
+}
+
+toggleCheckSelection(checkId: number): void {
+  const current = this.selectedCheckIds();
+  if (current.includes(checkId)) {
+    this.selectedCheckIds.set(current.filter(id => id !== checkId));
+  } else {
+    this.selectedCheckIds.set([...current, checkId]);
+  }
+}
+
+toggleSelectAll(): void {
+  const enabled = this.checks().filter(c => c.status === 'ENABLED').map(c => c.id);
+  if (this.selectedCheckIds().length === enabled.length) {
+    this.selectedCheckIds.set([]);
+  } else {
+    this.selectedCheckIds.set(enabled);
+  }
+}
+
+isAllSelected(): boolean {
+  const enabled = this.checks().filter(c => c.status === 'ENABLED');
+  return enabled.length > 0 && this.selectedCheckIds().length === enabled.length;
+}
+// ─── Run Checks ──────────────────────────────────────
+runSelectedChecks(): void {
+    const ids = this.selectedCheckIds();
+    if (ids.length === 0) return;
+
+    this.checkService.runAllChecks(this.appId, ids).subscribe({
+      next: () => {
+        this.selectedCheckIds.set([]);
+        this.dialog.open(SuccessDialogComponent, {
+          position: { top: '80px' },
+          data: {
+            title: 'Checks Triggered',
+            message: `${ids.length} check(s) are now running. Navigate to the Logs tab to see results.`
+          }
+        });
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to trigger checks', 'Close', { duration: 3000 });
+      }
     });
   }
 }

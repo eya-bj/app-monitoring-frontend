@@ -50,6 +50,7 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  
 
   .header-left {
     display: flex;
@@ -182,13 +183,17 @@ $color-shadow: rgba(0, 0, 0, 0.06);
 }
 .spin { animation: spin 1s linear infinite; }
 
-// ─── Tabs ─────────────────────────────────────────────────────────
 .tabs {
   display: flex;
   align-items: center;
   gap: 4px;
-  border-bottom: 1px solid $color-border;
   margin-bottom: 24px;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-top: -24px;
+  padding: 10px 16px 0 16px;  
+  border-bottom: 1px solid $color-border;
+  position: relative; // important
 }
 
 .tab-btn {
@@ -203,15 +208,24 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   font-weight: 500;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  margin-bottom: -2px;
   transition: color 150ms ease, border-color 150ms ease;
+  position: relative; // important
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
-  &:hover { color: $color-text; }
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    color: $color-text;
+  }
 
   &.active {
     color: $color-accent;
     border-bottom-color: $color-accent;
+    z-index: 1; // brings it above the .tabs border
   }
 }
 
@@ -230,6 +244,7 @@ $color-shadow: rgba(0, 0, 0, 0.06);
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  
 
   .tab-content-title {
     font-size: 16px;
@@ -601,9 +616,8 @@ $color-shadow: rgba(0, 0, 0, 0.06);
 .badge-file    { background: #d1fae5; color: #065f46; }
 
 // Severity badges
-.badge-low      { background: #f0fdf4; color: #166534; }
-.badge-medium   { background: #fef3c7; color: #92400e; }
-.badge-high     { background: #fff7ed; color: #c2410c; }
+.badge-info     { background: #eff6ff; color: #2563eb; }
+.badge-warning  { background: #fef3c7; color: #92400e; }
 .badge-critical { background: #fee2e2; color: #991b1b; }
 
 // Status badge

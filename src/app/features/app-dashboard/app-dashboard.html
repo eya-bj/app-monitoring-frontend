@@ -240,9 +240,6 @@
   <div class="panel-card">
     <div class="panel-header">
       <div class="panel-header-left">
-        <div class="panel-icon-box red-border-box">
-          <mat-icon class="panel-icon red-icon-clr">warning</mat-icon>
-        </div>
         <div>
           <div class="panel-title">Active Alerts</div>
           <div class="panel-sub">Showing up to 5 most recent alerts</div>
@@ -259,7 +256,6 @@
       <div class="state-row"><mat-icon class="spin">refresh</mat-icon><span>Loading...</span></div>
     } @else if (activeAlerts().length === 0) {
       <div class="empty-alerts">
-        <mat-icon class="empty-icon">check_circle</mat-icon>
         <div class="state-row muted-text">No Active Alerts</div>
       </div>
     } @else {
@@ -275,13 +271,20 @@
             <div class="alert-row-2">
                 <span class="alert-msg-text">
                   {{ alert.message }}
-                  @if (!alert.isGroup && alert.consecutiveFailures > 1) {
+                  @if (!alert.group && alert.consecutiveFailures > 1) {
                     <span class="alert-failures">— {{ alert.consecutiveFailures }} consecutive failures</span>
                   }
                 </span>
-                <button class="btn-ack">Acknowledge</button>
+                <div class="alert-actions">
+                  @if (alert.status === 'NEW') {
+                    <button class="btn-ack" (click)="acknowledge(alert)">Acknowledge</button>
+                  }
+                  @if (alert.status === 'ACKNOWLEDGED' && isAdmin()) {
+                    <button class="btn-ack" (click)="resolve(alert)">Resolve</button>
+                  }
+                </div>
             </div>
-            @if (alert.isGroup && alert.aiSummary) {
+            @if (alert.group && alert.aiSummary) {
               <div class="alert-ai">{{ alert.aiSummary }}</div>
             }
           </div>
@@ -299,9 +302,6 @@
       <div class="panel-card chart-pad">
         <div class="panel-header">
           <div class="panel-header-left">
-            <div class="chart-icon-box purple-border-box">
-              <mat-icon class="chart-icon purple-icon-clr">donut_large</mat-icon>
-            </div>
             <div>
               <div class="panel-title">Pass/Fail Ratio</div>
               <div class="panel-sub">Check execution distribution</div>
@@ -342,9 +342,6 @@
     <div class="panel-card chart-pad line-chart-card">
       <div class="panel-header">
         <div class="panel-header-left">
-          <div class="chart-icon-box blue-border-box">
-            <mat-icon class="chart-icon blue-icon-clr">trending_up</mat-icon>
-          </div>
           <div>
             <div class="panel-title">Results Over Time</div>
             <div class="panel-sub">7-day trend</div>
@@ -369,9 +366,6 @@
   <div class="panel-card">
     <div class="panel-header">
       <div class="panel-header-left">
-        <div class="chart-icon-box teal-border-box">
-          <mat-icon class="chart-icon teal-icon-clr">bolt</mat-icon>
-        </div>
         <div>
           <div class="panel-title">Latest Check Results</div>
           <div class="panel-sub">Real-time execution status</div>
