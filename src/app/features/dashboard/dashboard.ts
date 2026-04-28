@@ -86,7 +86,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   lastCheckTime(iso: string | null): string {
-    if (!iso) return 'Never';
+    if (!iso) return 'No Running Checks';
     const d = new Date(iso);
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }

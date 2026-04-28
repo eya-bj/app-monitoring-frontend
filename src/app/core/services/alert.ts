@@ -16,6 +16,7 @@ export interface AlertListItemDTO {
   createdAt: string;
   updatedAt: string | null;
   children?: AlertListItemDTO[];
+  joinedGroup?: boolean;
 }
 
 export interface AlertPage {
@@ -68,5 +69,5 @@ export class AlertService {
   getTodayAlerts(): Observable<AlertListItemDTO[]> {
     return this.http.get<AlertListItemDTO[]>(`${this.base}/alerts/today`);
   }
-  
+
 }

@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, signal, computed, inject } from '@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AlertRefreshService } from '../../../core/services/alert-refresh';
@@ -12,7 +13,7 @@ import { AuthService } from '../../../core/services/auth';
 @Component({
   selector: 'app-alerts',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatDialogModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatDialogModule, MatSnackBarModule, MatTooltipModule],
   templateUrl: './app-alerts.html',
   styleUrl: './app-alerts.scss'
 })
@@ -37,7 +38,7 @@ export class AppAlertsComponent implements OnInit {
     this.currentUser()?.role === 'SYSTEM_ADMIN'
   );
 
-  
+
   // ── State ──────────────────────────────────────
   alerts       = signal<AlertListItemDTO[]>([]);
   loading      = signal(true);
@@ -132,7 +133,22 @@ export class AppAlertsComponent implements OnInit {
       this.loadingChildren.add(alert.id);
       this.alertService.getChildren(alert.id).subscribe({
         next: (children) => {
-          this.groupChildren.set(alert.id, children);
+          // Deduplicate by check: if same check appears twice (resolved + new),
+          // keep only the most recent one
+          const deduped = children.reduce((acc, child) => {
+            const existing = acc.find(c => c.message === child.message);
+            if (!existing) {
+              acc.push(child);
+            } else {
+              if (new Date(child.createdAt) > new Date(existing.createdAt)) {
+                const idx = acc.indexOf(existing);
+                acc[idx] = child;
+              }
+            }
+            return acc;
+          }, [] as AlertListItemDTO[]);
+
+          this.groupChildren.set(alert.id, deduped);
           this.loadingChildren.delete(alert.id);
         },
         error: () => this.loadingChildren.delete(alert.id)

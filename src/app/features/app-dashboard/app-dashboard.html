@@ -1,101 +1,6 @@
 <div class="dash-page">
 
   <!-- ══════════════════════════════════════════ -->
-  <!-- S1. EXPORT BUTTON                         -->
-  <!-- ══════════════════════════════════════════ -->
-  <div class="export-row">
-    <button class="btn-export" >
-      <mat-icon>download</mat-icon>
-      Export PDF
-    </button>
-  </div>
-
-  <!-- ══════════════════════════════════════════ -->
-  <!-- S2. AI HEALTH REPORT                      -->
-  <!-- ══════════════════════════════════════════ -->
-  <div class="ai-card ai-neutral">
-
-    @if (true) {
-      <!-- PLACEHOLDER STATE — no report generated yet -->
-      <div class="ai-header">
-        <div class="ai-left">
-          <div class="ai-icon-box neutral-box">
-            <mat-icon class="ai-icon neutral-icon">bar_chart</mat-icon>
-          </div>
-          <div class="ai-title-block">
-            <div class="ai-name-row">
-              <span class="ai-name">AI Health Report</span>
-              <span class="ai-pill">Auto-generated</span>
-            </div>
-            <div class="ai-not-yet">
-              <mat-icon class="ai-not-yet-icon">schedule</mat-icon>
-              <span>Not yet generated</span>
-            </div>
-          </div>
-        </div>
-        <button class="btn-regen">
-          <mat-icon>refresh</mat-icon>
-          Generate Report
-        </button>
-      </div>
-    } @else {
-      <!-- FULL STATE — report available (Week 2) -->
-      <div class="ai-header">
-        <div class="ai-left">
-          <div class="ai-icon-box neutral-box">
-            <mat-icon class="ai-icon neutral-icon">bar_chart</mat-icon>
-          </div>
-          <div class="ai-title-block">
-            <div class="ai-name-row">
-              <span class="ai-name">AI Health Report</span>
-              <span class="ai-pill">Auto-generated</span>
-            </div>
-            <div class="ai-score-row">
-              <span class="ai-score neutral-score">—</span>
-              <span class="ai-score-den">/100</span>
-            </div>
-          </div>
-        </div>
-        <button class="btn-regen">
-          <mat-icon>refresh</mat-icon>
-          Generate Report
-        </button>
-      </div>
-
-      <div class="ai-grid">
-        <div class="ai-glass-card">
-          <div class="ai-sec-title">
-            <span class="vbar blue-bar"></span>
-            Summary
-          </div>
-          <p class="ai-sec-body">—</p>
-        </div>
-        <div class="ai-glass-card">
-          <div class="ai-sec-title">
-            <span class="vbar purple-bar"></span>
-            Key Findings
-          </div>
-          <p class="ai-sec-body">—</p>
-        </div>
-      </div>
-
-      <div class="ai-glass-card">
-        <div class="ai-sec-title">
-          <span class="vbar amber-bar"></span>
-          Suggested Actions
-        </div>
-        <p class="ai-sec-body">—</p>
-      </div>
-
-      <div class="ai-footer">
-        <mat-icon class="ai-footer-icon">schedule</mat-icon>
-        <span>Generated at —</span>
-      </div>
-    }
-
-  </div>
-
-  <!-- ══════════════════════════════════════════ -->
   <!-- S3. FILTER BAR                            -->
   <!-- ══════════════════════════════════════════ -->
   <div class="filter-bar">
@@ -263,26 +168,42 @@
         @for (alert of activeAlerts(); track alert.id) {
           <div class="alert-card">
             <div class="alert-row-1">
-              <span class="alert-sev" [class]="'as-' + alert.severity.toLowerCase()">
-                {{ alert.severity }}
+              <div class="alert-meta">
+                <span class="alert-sev" [class]="'as-' + alert.severity.toLowerCase()">
+                  {{ alert.severity }}
+                </span>
+
+                @if (alert.group) {
+                  <span class="alert-group-badge"
+                        title="Grouped incident — multiple related failures">
+                    🔗 GROUPED BY AI
+                  </span>
+                }
+              </div>
+
+              <span class="alert-ts">
+                {{ timeAgo(alert.createdAt) }}
               </span>
-              <span class="alert-ts">{{ timeAgo(alert.createdAt) }}</span>
             </div>
             <div class="alert-row-2">
-                <span class="alert-msg-text">
-                  {{ alert.message }}
-                  @if (!alert.group && alert.consecutiveFailures > 1) {
-                    <span class="alert-failures">— {{ alert.consecutiveFailures }} consecutive failures</span>
-                  }
-                </span>
-                <div class="alert-actions">
-                  @if (alert.status === 'NEW') {
-                    <button class="btn-ack" (click)="acknowledge(alert)">Acknowledge</button>
-                  }
-                  @if (alert.status === 'ACKNOWLEDGED' && isAdmin()) {
-                    <button class="btn-ack" (click)="resolve(alert)">Resolve</button>
-                  }
-                </div>
+              <span class="alert-msg-text">
+                {{ alert.message }}
+                @if (!alert.group && alert.consecutiveFailures > 1) {
+                  <span class="alert-failures">— {{ alert.consecutiveFailures }} consecutive failures</span>
+                }
+              </span>
+              <div class="alert-actions">
+                @if (alert.status === 'NEW') {
+                  <button class="btn-ack" (click)="acknowledge(alert)">Acknowledge</button>
+                } @else if (alert.status === 'ACKNOWLEDGED' && isAdmin() && !alert.group) {
+                  <button class="btn-ack" (click)="resolve(alert)">Resolve</button>
+                } @else if (alert.status === 'ACKNOWLEDGED' && alert.group) {
+                  <span class="alert-no-action"
+                        title="This group will resolve when all of its checks recover">
+                    Resolves automatically
+                  </span>
+                }
+              </div>
             </div>
             @if (alert.group && alert.aiSummary) {
               <div class="alert-ai">{{ alert.aiSummary }}</div>

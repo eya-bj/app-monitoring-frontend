@@ -55,28 +55,65 @@
           } @else {
             <div class="dd-list">
               @for (alert of alerts(); track alert.id) {
-                <div class="dd-alert-row" (click)="goToAlert(alert)">
-                  <div class="dd-alert-info">
-                    <div class="dd-alert-top">
-                      <span class="dd-app-name">{{ alert.appName }}</span>
-                      <span class="dd-sev-badge"
-                        [class.sev-badge-critical]="alert.severity === 'CRITICAL'"
-                        [class.sev-badge-warning]="alert.severity === 'WARNING'"
-                        [class.sev-badge-info]="alert.severity === 'INFO'">
-                        {{ alert.severity | titlecase }}
-                      </span>
-                    </div>
-                    <div class="dd-check-name">{{ alert.message }}</div>
-                    <div class="dd-alert-bottom">
-                      <span class="dd-ts">{{ formatTime(alert.createdAt) }}</span>
-                      <button class="dd-ack-btn"
-                        (click)="$event.stopPropagation(); acknowledge(alert.id, alert.group)">
-                        Acknowledge
-                      </button>
+
+                @if (alert.joinedGroup) {
+                  <!-- Joined group row -->
+                  <div class="dd-alert-row dd-alert-row--joined">
+                    <div class="dd-alert-info">
+                      <div class="dd-alert-top">
+                        <span class="dd-app-name">{{ alert.appName }}</span>
+                        <span class="dd-sev-badge"
+                          [class.sev-badge-critical]="alert.severity === 'CRITICAL'"
+                          [class.sev-badge-warning]="alert.severity === 'WARNING'"
+                          [class.sev-badge-info]="alert.severity === 'INFO'">
+                          {{ alert.severity | titlecase }}
+                        </span>
+                      </div>
+                      <div class="dd-check-name">
+                        {{ alert.message }}
+                        <span class="dd-joined-label">joined a grouped alert</span>
+                      </div>
+                      <div class="dd-alert-bottom">
+                        <span class="dd-ts">{{ formatTime(alert.createdAt) }}</span>
+                        <button class="dd-ack-btn"
+                          (click)="$event.stopPropagation(); acknowledge(alert.id, false)">
+                          Acknowledge
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                </div>
+                } @else {
+                  <!-- Normal row -->
+                  <div class="dd-alert-row" (click)="goToAlert(alert)">
+                    <div class="dd-alert-info">
+                      <div class="dd-alert-top">
+                        <span class="dd-app-name">{{ alert.appName }}</span>
+                        <span class="dd-sev-badge"
+                          [class.sev-badge-critical]="alert.severity === 'CRITICAL'"
+                          [class.sev-badge-warning]="alert.severity === 'WARNING'"
+                          [class.sev-badge-info]="alert.severity === 'INFO'">
+                          {{ alert.severity | titlecase }}
+                        </span>
+                        @if (alert.group) {
+                          <span class="dd-group-badge"
+                            title="Grouped incident — multiple related failures">
+                            🔗 GROUPED BY AI
+                          </span>
+                        }
+                      </div>
+                      <div class="dd-check-name">{{ alert.message }}</div>
+                      <div class="dd-alert-bottom">
+                        <span class="dd-ts">{{ formatTime(alert.createdAt) }}</span>
+                        <button class="dd-ack-btn"
+                          (click)="$event.stopPropagation(); acknowledge(alert.id, alert.group)">
+                          Acknowledge
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+
               }
             </div>
           }

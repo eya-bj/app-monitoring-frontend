@@ -36,10 +36,10 @@ export interface CriticalAlertDTO {
   appId: number;
   appName: string;
   message: string;
-  isGroup: boolean;
+  group: boolean;
   childCount?: number;
   createdAt: string;
-  failureCount?: number; 
+  failureCount?: number;
 }
 
 @Injectable({ providedIn: 'root' })

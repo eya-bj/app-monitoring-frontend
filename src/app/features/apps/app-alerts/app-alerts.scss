@@ -329,3 +329,17 @@ $shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
   font-size: 12px;
   color: $muted-lt;
 }
+
+.ai-action {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;   // show up to 3 lines
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  max-width: 240px;        // adjust to your Actions column width
+  color: $muted-lt;
+  font-size: 12px;
+  cursor: help;
+  white-space: normal;     // allow wrapping
+}
+

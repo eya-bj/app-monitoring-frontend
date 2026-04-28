@@ -83,6 +83,19 @@ $shadow-md:  0 4px 12px rgba(0,0,0,0.08);
   line-height: 1;
 }
 
+.dd-group-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: #e0e7ff;       // soft indigo background
+  color: #3730a3;            // darker indigo text
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
 // ── Avatar button ─────────────────────────────────────────────
 .avatar-btn {
   width: 40px;
@@ -281,6 +294,23 @@ $shadow-md:  0 4px 12px rgba(0,0,0,0.08);
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.dd-alert-row--joined {
+  background: rgba(var(--color-info-rgb), 0.04);
+  border-left: 3px solid var(--color-info);
+  cursor: default;
+
+  &:hover {
+    background: rgba(var(--color-info-rgb), 0.04);
+  }
+}
+
+.dd-joined-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-left: 4px;
 }
 
 .dd-ts {

@@ -105,13 +105,13 @@
           @for (alert of criticalAlerts(); track alert.alertId) {
             <div class="alert-card-red" (click)="goToAlerts(alert.appId)">
 
-              @if (!alert.isGroup) {
+              @if (!alert.group){
                 <div class="ac-line1">
                   <span class="ac-appname">{{ alert.appName }}</span>
                   <span class="ac-sep">·</span>
                   <span class="ac-checkname">{{ alert.message }}</span>
                 </div>
-                @if (alert.failureCount && alert.failureCount > 1) {
+                @if (alert.failureCount ) {
                   <div class="ac-failures">{{ alert.failureCount }} consecutive failures</div>
                 }
                 <div class="ac-line3">{{ formatDate(alert.createdAt) }}</div>
@@ -119,10 +119,12 @@
                 <!-- GROUPED -->
                 <div class="ac-line1">
                   <span class="ac-appname">{{ alert.appName }}</span>
-                  <span class="ac-group-badge">Grouped Alert</span>
-                  <span class="ac-count-badge">{{ alert.childCount }}</span>
+                  <span class="ac-group-badge"
+                        title="Grouped incident — multiple related failures">
+                    🔗 GROUPED BY AI
+                  </span>
                 </div>
-                <div class="ac-line2">{{ alert.message }}</div>
+                <div class="ac-failures">{{ alert.message }}</div>
                 <div class="ac-line3">{{ formatDate(alert.createdAt) }}</div>
               }
 
@@ -167,7 +169,7 @@
                   <span class="health-score-val" [ngClass]="getScoreClass(app.healthStatus)">
                     {{ app.passRate | number:'1.0-0' }} %
                   </span>
-                  <span class="health-score-lbl">Health Score</span>
+                  <span class="health-score-lbl">Pass Rate</span>
                 </div>
                 @if (app.newAlerts > 0) {
                   <div class="alert-count-pill">

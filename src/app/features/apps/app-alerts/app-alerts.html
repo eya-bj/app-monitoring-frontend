@@ -65,14 +65,16 @@
                 <td class="t-message">
                   {{ alert.message }}
                   @if (alert.group) {
-                    <span class="group-tag">🔗 {{ alert.childCount }} checks</span>
+                    <span class="group-tag">🔗 {{ alert.childCount }} checks grouped by AI</span>
                   }
                 </td>
                 <td class="t-muted">
                   @if (!alert.group && alert.failureCount) {
                     {{ alert.failureCount }}
                   } @else if (alert.group) {
-                    —
+                      <button class="btn-expand" (click)="toggleGroup(alert)">
+                        <mat-icon>{{ isExpanded(alert.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                      </button>
                   } @else {
                     —
                   }
@@ -85,16 +87,21 @@
                 <td class="t-muted">{{ formatDate(alert.createdAt) }}</td>
                 <td>
                   <div class="t-actions">
-                    @if (alert.group) {
-                      <button class="btn-expand" (click)="toggleGroup(alert)">
-                        <mat-icon>{{ isExpanded(alert.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
-                      </button>
-                    }
                     @if (alert.status === 'NEW') {
                       <button class="btn-ack" (click)="acknowledge(alert)">Acknowledge</button>
-                    } @else if (alert.status === 'ACKNOWLEDGED' && isAdmin()) {
+                    } @else if (alert.status === 'ACKNOWLEDGED' && isAdmin() && !alert.group) {
                       <button class="btn-resolve" (click)="resolve(alert)">Resolve</button>
-                    } @else if (alert.status === 'ACKNOWLEDGED' && !(isAdmin())) {
+                    } @else if (alert.status === 'ACKNOWLEDGED' && alert.group) {
+                      <span
+                        class="ai-action"
+                        [matTooltip]="alert.suggestedAction || 'No recommendation available'"
+                        matTooltipClass="ai-tooltip"
+                        matTooltipPosition="above">
+
+                        {{ alert.suggestedAction || 'No recommendation available' }}
+
+                      </span>
+                    } @else if (alert.status === 'ACKNOWLEDGED') {
                       <span class="no-action">Working on it ...</span>
                     } @else if (alert.status === 'RESOLVED') {
                       <span class="no-action">No action needed</span>

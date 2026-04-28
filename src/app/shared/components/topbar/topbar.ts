@@ -37,6 +37,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
   private pollInterval: any;
 
+
   ngOnInit(): void {
     this.loadAlerts();
     this.pollInterval = setInterval(() => this.loadAlerts(), 30000);
@@ -47,6 +48,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.pollInterval) clearInterval(this.pollInterval);
   }
+
+
 
   loadAlerts(): void {
     this.alertService.getTodayAlerts().subscribe({
@@ -74,9 +77,16 @@ export class TopbarComponent implements OnInit, OnDestroy {
   }
 
   acknowledge(alertId: number, isGroup: boolean): void {
-    console.log('acknowledge called', alertId, isGroup);
     this.alertService.acknowledge(alertId, isGroup).subscribe({
-      next: () => this.loadAlerts()
+      next: () => {
+        this.alertRefresh.triggerRefresh();
+        this.loadAlerts();
+      },
+      error: () => {
+        // Silently re-fetch — likely the alert was already acknowledged
+        // by another action. Re-fetching shows the actual current state.
+        this.loadAlerts();
+      }
     });
   }
 

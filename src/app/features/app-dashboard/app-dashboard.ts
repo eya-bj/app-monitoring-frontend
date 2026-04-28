@@ -37,7 +37,7 @@ export class AppDashboard implements OnInit, OnDestroy {
 
   // ─── State ────────────────────────────────────────────
   stats          = signal<AppDashboardStatsDTO | null>(null);
-  timeline = signal<DailyResultDTO[]>([]);  
+  timeline = signal<DailyResultDTO[]>([]);
   latest         = signal<LatestCheckResultDTO[]>([]);
   activeAlerts   = signal<ActiveAlertDTO[]>([]);
 
@@ -60,7 +60,7 @@ export class AppDashboard implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private alertService: AlertService,
     private authService: AuthService ,
-    private alertRefresh: AlertRefreshService 
+    private alertRefresh: AlertRefreshService
 
   ) {}
 
@@ -77,7 +77,7 @@ export class AppDashboard implements OnInit, OnDestroy {
     if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
-  
+
 
   // ─── Load ─────────────────────────────────────────────
 
@@ -335,7 +335,7 @@ export class AppDashboard implements OnInit, OnDestroy {
     timeFromNow(dateStr: string | null): string {
       if (!dateStr) return '—';
       const diff = new Date(dateStr).getTime() - Date.now();
-      if (diff < 0) return 'pending';
+      if (diff < 0) return 'updating...';
       const min = Math.floor(diff / 60000);
       if (min < 1)  return 'in <1 min';
       if (min < 60) return `in ${min} min`;
@@ -368,7 +368,7 @@ export class AppDashboard implements OnInit, OnDestroy {
       resolve(alert: ActiveAlertDTO): void {
         this.alertService.resolve(alert.id, alert.group).subscribe({
           next: () => {
-            this.alertRefresh.triggerRefresh();  // ← add
+            this.alertRefresh.triggerRefresh();
             this.loadAlerts();
           }
         });
@@ -398,7 +398,7 @@ export class AppDashboard implements OnInit, OnDestroy {
   timeFromNowValue(dateStr: string | null): string {
     if (!dateStr) return '—';
     const diff = new Date(dateStr).getTime() - Date.now();
-    if (diff < 0) return 'Overdue';
+    if (diff < 0) return 'updating...';
     const min = Math.floor(diff / 60000);
     if (min < 1)  return '<1';
     if (min < 60) return `${min}`;
@@ -455,5 +455,5 @@ export class AppDashboard implements OnInit, OnDestroy {
     });
   }
 
-  
+
 }
