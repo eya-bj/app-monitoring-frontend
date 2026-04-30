@@ -10,13 +10,13 @@ import {
   EditProfileResponse
 } from '../models/user';
 import { PageResponse } from '../models/common';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private baseUrl = 'http://localhost:8080/api/users';
-
+  private baseUrl = `${API_BASE_URL}/users`;
   constructor(private http: HttpClient) {}
 
   createUser(request: CreateUserRequest): Observable<UserResponse> {

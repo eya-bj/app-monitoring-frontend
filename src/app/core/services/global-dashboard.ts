@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../constants/constant';
 
 export interface GlobalSummary {
   totalApps: number;
@@ -44,7 +45,7 @@ export interface CriticalAlertDTO {
 
 @Injectable({ providedIn: 'root' })
 export class GlobalDashboardService {
-  private base = 'http://localhost:8080/api';
+  private base = API_BASE_URL;
   private http = inject(HttpClient);
 
   getGlobalDashboard(): Observable<GlobalDashboardResponse> {

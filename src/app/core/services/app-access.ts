@@ -4,13 +4,13 @@ import { Observable } from 'rxjs';
 import { AssignUserToAppRequest, UserAppResponse } from '../models/user-app-access';
 import { UserResponse } from '../models/user';
 import { AppResponse } from '../models/app';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AppAccessService {
-  private baseUrl = 'http://localhost:8080/api/user-app-access';
-
+  private baseUrl = `${API_BASE_URL}/user-app-access`;
   constructor(private http: HttpClient) {}
 
   assignUserToApp(request: AssignUserToAppRequest): Observable<UserAppResponse> {

@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { CheckResultResponse, ResultStatus } from '../models/check-result';
 import { CheckType } from '../models/check';
 import { PageResponse } from '../models/common';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CheckResultService {
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = API_BASE_URL;
 
   constructor(private http: HttpClient) {}
 

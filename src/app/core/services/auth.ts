@@ -2,12 +2,13 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LoginRequest, LoginResponse } from '../models/user';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/api/auth';
+  private baseUrl = API_BASE_URL;
 
   private _currentUser = signal<LoginResponse | null>(this.getUser());
   currentUser = this._currentUser.asReadonly();
@@ -15,7 +16,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, request);
+    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, request);
   }
 
   saveToken(token: string): void {

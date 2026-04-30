@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../constants/constant';
 
 export interface AlertListItemDTO {
   id: number;
@@ -29,7 +30,7 @@ export interface AlertPage {
 
 @Injectable({ providedIn: 'root' })
 export class AlertService {
-  private base = 'http://localhost:8080/api';
+  private baseUrl = API_BASE_URL;
   private http = inject(HttpClient);
 
   getAlerts(appId: number, filters: {
@@ -44,30 +45,30 @@ export class AlertService {
     params = params.set('page', filters.page ?? 0);
     params = params.set('size', filters.size ?? 10);
     return this.http.get<AlertPage>(
-      `${this.base}/apps/${appId}/alerts`, { params });
+      `${this.baseUrl}/apps/${appId}/alerts`, { params });
   }
 
   getChildren(groupId: number): Observable<AlertListItemDTO[]> {
     return this.http.get<AlertListItemDTO[]>(
-      `${this.base}/alerts/groups/${groupId}/children`);
+      `${this.baseUrl}/alerts/groups/${groupId}/children`);
   }
 
   acknowledge(id: number, isGroup: boolean): Observable<void> {
     return this.http.patch<void>(
-      `${this.base}/alerts/${id}/acknowledge?isGroup=${isGroup}`, {});
+      `${this.baseUrl}/alerts/${id}/acknowledge?isGroup=${isGroup}`, {});
   }
 
   resolve(id: number, isGroup: boolean): Observable<void> {
     return this.http.patch<void>(
-      `${this.base}/alerts/${id}/resolve?isGroup=${isGroup}`, {});
+      `${this.baseUrl}/alerts/${id}/resolve?isGroup=${isGroup}`, {});
   }
 
   getUnreadCount(): Observable<number> {
-    return this.http.get<number>(`${this.base}/alerts/unread-count`);
+    return this.http.get<number>(`${this.baseUrl}/alerts/unread-count`);
   }
 
   getTodayAlerts(): Observable<AlertListItemDTO[]> {
-    return this.http.get<AlertListItemDTO[]>(`${this.base}/alerts/today`);
+    return this.http.get<AlertListItemDTO[]>(`${this.baseUrl}/alerts/today`);
   }
 
 }

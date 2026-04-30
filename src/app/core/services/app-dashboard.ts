@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../constants/constant';
 
 export interface CheckTypeStatsDTO {
   checkType: string;
@@ -54,33 +55,33 @@ export interface ActiveAlertDTO {
 @Injectable({ providedIn: 'root' })
 export class AppDashboardService {
 
-  private base = 'http://localhost:8080/api';
+  private baseUrl = API_BASE_URL;
 
   constructor(private http: HttpClient) {}
 
   getAppStats(appId: number, params?: any): Observable<AppDashboardStatsDTO> {
     return this.http.get<AppDashboardStatsDTO>(
-      `${this.base}/apps/${appId}/dashboard/stats`,
+      `${this.baseUrl}/apps/${appId}/dashboard/stats`,
       { params }
     );
   }
 
   getTimeline(appId: number, params?: any): Observable<DailyResultDTO[]> {
     return this.http.get<DailyResultDTO[]>(
-      `${this.base}/apps/${appId}/dashboard/timeline`,
+      `${this.baseUrl}/apps/${appId}/dashboard/timeline`,
       { params }
     );
   }
 
   getLatest(appId: number): Observable<LatestCheckResultDTO[]> {
     return this.http.get<LatestCheckResultDTO[]>(
-      `${this.base}/apps/${appId}/dashboard/latest`
+      `${this.baseUrl}/apps/${appId}/dashboard/latest`
     );
   }
 
   getActiveAlerts(appId: number): Observable<ActiveAlertDTO[]> {
     return this.http.get<ActiveAlertDTO[]>(
-      `${this.base}/apps/${appId}/dashboard/active-alerts`
+      `${this.baseUrl}/apps/${appId}/dashboard/active-alerts`
     );
   }
 }

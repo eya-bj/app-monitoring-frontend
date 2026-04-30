@@ -30,12 +30,6 @@
           <span class="field-error">Password is required</span>
         }
       </div>
-
-      <div class="hint">
-        <mat-icon>info</mat-icon>
-        First time? Default password: <strong>FirstName@Year</strong> (e.g. John@2026)
-      </div>
-
       @if (errorMessage()) {
         <div class="error-banner">{{ errorMessage() }}</div>
       }

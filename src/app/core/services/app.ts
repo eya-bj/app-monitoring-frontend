@@ -6,12 +6,13 @@ import {
   CreateAppRequest,
   UpdateAppRequest,
 } from '../models/app';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AppService {
-  private baseUrl = 'http://localhost:8080/api/apps';
+  private baseUrl = `${API_BASE_URL}/apps`;
 
   constructor(private http: HttpClient) {}
 

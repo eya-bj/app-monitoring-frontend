@@ -12,12 +12,13 @@ import {
   UpdateDataCheckRequest,
   UpdateFileCheckRequest,
 } from '../models/check';
+import { API_BASE_URL } from '../constants/constant';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CheckService {
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = API_BASE_URL;
 
   constructor(private http: HttpClient) {}
 
