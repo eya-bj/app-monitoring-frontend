@@ -34,7 +34,6 @@ export interface UpdateUserRequest {
 
 export interface EditProfileRequest {
   name?: string;
-  email?: string;
   currentPassword?: string;
   newPassword?: string;
 }

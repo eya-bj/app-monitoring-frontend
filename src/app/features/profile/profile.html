@@ -49,21 +49,23 @@
                 }
               </div>
 
+              <!-- Email — readonly display -->
               <div class="field">
-                <label class="form-label">Email <span class="required">*</span></label>
+                <label class="form-label">Email</label>
                 <input
-                  class="form-input"
+                  class="form-input readonly"
                   type="email"
-                  placeholder="Enter email"
-                  formControlName="email" />
-                @if (emailError) {
-                  <span class="form-error">{{ emailError }}</span>
-                }
+                  [value]="currentUser()?.email"
+                  readonly />
+                <span class="form-hint">Email cannot be changed.</span>
               </div>
             </div>
 
           </div>
           <div class="card-footer">
+            @if (profileError()) {
+              <span class="form-error">{{ profileError() }}</span>
+            }
             <button class="btn-primary" (click)="saveProfile()">
               <mat-icon>save</mat-icon>
               Save Changes
@@ -88,6 +90,9 @@
                   type="password"
                   placeholder="Enter current password"
                   formControlName="currentPassword" />
+                @if (currentPasswordError) {
+                  <span class="form-error">{{ currentPasswordError }}</span>
+                }
               </div>
 
               <div class="field">
@@ -113,15 +118,19 @@
                   <span class="form-error">{{ confirmPasswordError }}</span>
                 }
               </div>
-
+              @if (passwordError()) {
+                <div class="error-field">
+                  <span class="form-error">{{ passwordError() }}</span>
+                </div>
+              }
             </div>
           </div>
-          <div class="card-footer">
-            <button class="btn-primary" (click)="savePassword()">
-              <mat-icon>lock</mat-icon>
-              Change Password
-            </button>
-          </div>
+            <div class="card-footer">
+              <button class="btn-primary" (click)="savePassword()">
+                <mat-icon>lock</mat-icon>
+                Change Password
+              </button>
+            </div>
         </div>
       </div>
 

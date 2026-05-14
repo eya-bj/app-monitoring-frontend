@@ -4,14 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-
+import { ChangeDetectorRef } from '@angular/core';
 import { UserService } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
 import { AppAccessService } from '../../core/services/app-access';
 import { AppResponse } from '../../core/models/app';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { SuccessDialogComponent } from '../../shared/components/success-dialog/success-dialog';
 
 @Component({
@@ -24,7 +22,6 @@ import { SuccessDialogComponent } from '../../shared/components/success-dialog/s
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    MatSnackBarModule,
     MatDialogModule,
   ],
   templateUrl: './profile.html',
@@ -44,17 +41,19 @@ export class ProfileComponent implements OnInit {
   // Password form
   passwordForm: FormGroup;
 
+  profileError = signal('');
+  passwordError = signal('');
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private authService: AuthService,
     private appAccessService: AppAccessService,
-    private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
     });
 
     this.passwordForm = this.fb.group({
@@ -69,13 +68,20 @@ export class ProfileComponent implements OnInit {
     if (user) {
       this.profileForm.patchValue({
         name: user.name,
-        email: user.email,
       });
     }
 
     if (this.isUser()) {
       this.loadAssignedApps();
     }
+
+    // Mark current password as touched when user starts typing in new password
+    this.passwordForm.get('newPassword')?.valueChanges.subscribe(() => {
+      const ctrl = this.passwordForm.get('currentPassword');
+      if (ctrl && !ctrl.touched) {
+        ctrl.markAsTouched();
+      }
+    });
 
     this.isLoading.set(false);
   }
@@ -129,80 +135,55 @@ export class ProfileComponent implements OnInit {
   }
 
   saveProfile(): void {
-    this.profileForm.markAllAsTouched();
-    if (this.profileForm.invalid) return;
+  this.profileError.set('');
+  this.profileForm.markAllAsTouched();
+  this.cdr.detectChanges();
+  if (this.profileForm.invalid) return;
 
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      position: { top: '80px' },
-      data: {
-        title: 'Update Profile',
-        message: 'Are you sure you want to update your profile information?',
-        confirmLabel: 'Save',
-        cancelLabel: 'Cancel',
-        isDanger: false,
-      },
-    });
+  const userId = this.currentUser()?.id;
+  if (!userId) return;
 
-    ref.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
-      const userId = this.currentUser()?.id;
-      if (!userId) return;
-
-      this.userService.editProfile(userId, {
-        name: this.profileForm.get('name')?.value,
-        email: this.profileForm.get('email')?.value,
-      }).subscribe({
-        next: (response) => {
-          this.authService.saveToken(response.token);
-          this.authService.saveUser({
-            ...this.currentUser()!,
-            name: response.user.name,
-            email: response.user.email,
-          });
-          this.showSuccess('Profile Updated', 'Your profile has been updated successfully.');
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to update profile.', 'Close', { duration: 3000 });
-        },
+  this.userService.editProfile(userId, {
+    name: this.profileForm.get('name')?.value,
+  }).subscribe({
+    next: (response) => {
+      this.authService.saveToken(response.token);
+      this.authService.saveUser({
+        ...this.currentUser()!,
+        name: response.user.name,
       });
-    });
-  }
+      this.showSuccess('Profile Updated', 'Your profile has been updated successfully.');
+    },
+    error: (err) => {
+      this.profileError.set(err.error?.message || 'Failed to update profile.');
+    },
+  });
+}
 
   savePassword(): void {
-    this.passwordForm.markAllAsTouched();
-    if (this.passwordForm.invalid) return;
+  this.passwordError.set('');
+  this.passwordForm.markAllAsTouched();
+  this.cdr.detectChanges();
+  if (this.passwordForm.invalid) return;
 
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      position: { top: '80px' },
-      data: {
-        title: 'Change Password',
-        message: 'Are you sure you want to change your password?',
-        confirmLabel: 'Change',
-        cancelLabel: 'Cancel',
-        isDanger: false,
-      },
-    });
+  const userId = this.currentUser()?.id;
+  if (!userId) return;
 
-    ref.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
-      const userId = this.currentUser()?.id;
-      if (!userId) return;
-
-      this.userService.editProfile(userId, {
-        currentPassword: this.passwordForm.get('currentPassword')?.value,
-        newPassword: this.passwordForm.get('newPassword')?.value,
-      }).subscribe({
-        next: (response) => {
-          this.authService.saveToken(response.token);
-          this.passwordForm.reset();
-          this.showSuccess('Password Changed', 'Your password has been changed successfully.');
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to change password.', 'Close', { duration: 3000 });
-        },
-      });
-    });
-  }
+  this.userService.editProfile(userId, {
+    currentPassword: this.passwordForm.get('currentPassword')?.value,
+    newPassword: this.passwordForm.get('newPassword')?.value,
+  }).subscribe({
+    next: (response) => {
+      this.authService.saveToken(response.token);
+      this.passwordForm.reset();
+      this.passwordError.set('');
+      this.showSuccess('Password Changed', 'Your password has been changed successfully.');
+    },
+    error: (err) => {
+      this.passwordError.set(err.error?.message || 'Failed to change password.');
+    },
+  });
+}
 
   getInitials(): string {
     const name = this.currentUser()?.name || '';
@@ -224,4 +205,11 @@ export class ProfileComponent implements OnInit {
       default: return 'badge badge-user';
     }
   }
+
+  get currentPasswordError(): string {
+    const ctrl = this.passwordForm.get('currentPassword');
+    if (ctrl?.touched && ctrl.hasError('required')) return 'Current password is required.';
+    return '';
+  }
+
 }

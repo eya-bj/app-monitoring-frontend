@@ -118,35 +118,22 @@ export class UserDetailComponent implements OnInit {
   }
 
   updateRole(): void {
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      position: { top: '80px' },
-      data: {
-        title: 'Update Role',
-        message: `Are you sure you want to change ${this.user()?.name}'s role to ${this.selectedRole()}?`,
-        confirmLabel: 'Update',
-        cancelLabel: 'Cancel',
-        isDanger: false,
-      },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      const request: UpdateUserRequest = { role: this.selectedRole() };
-      this.userService.updateUserRole(this.userId, request).subscribe({
-        next: () => {
-          this.showSuccess(
-            'Role Updated',
-            `${this.user()?.name}'s role has been updated to ${this.selectedRole()}.`,
-          );
-          this.loadAll();
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to update role.', 'Close', {
-            duration: 3000,
-          });
-        },
+  const request: UpdateUserRequest = { role: this.selectedRole() };
+  this.userService.updateUserRole(this.userId, request).subscribe({
+    next: () => {
+      this.showSuccess(
+        'Role Updated',
+        `${this.user()?.name}'s role has been updated to ${this.selectedRole()}.`,
+      );
+      this.loadAll();
+    },
+    error: (err) => {
+      this.snackBar.open(err.error?.message || 'Failed to update role.', 'Close', {
+        duration: 3000,
       });
-    });
-  }
+    },
+  });
+}
 
   deleteUser(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {

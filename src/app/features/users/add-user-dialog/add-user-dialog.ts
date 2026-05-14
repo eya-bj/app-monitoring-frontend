@@ -73,23 +73,7 @@ export class AddUserDialogComponent {
   submit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-
-    // Step 1 — confirm creation
-    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-      position: { top: '80px' },
-      data: {
-        title: 'Add User',
-        message: `Are you sure you want to create a new user with email ${this.form.get('email')?.value}?`,
-        confirmLabel: 'Create',
-        cancelLabel: 'Cancel',
-        isDanger: false,
-      },
-    });
-
-    confirmRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
-      this.createUser();
-    });
+    this.createUser();
   }
 
   private createUser(): void {
